@@ -32,7 +32,6 @@
   h1,h2,h3{ font-family: 'Fraunces', serif; font-weight:600; margin:0; }
   ::selection{ background: var(--gold); color:#1E1B18; }
 
-  /* ---------- Login ---------- */
   #login{
     height:100vh; display:flex; align-items:center; justify-content:center;
     flex-direction:column; gap:22px; padding:24px; text-align:center;
@@ -42,21 +41,19 @@
   #login p{ color:var(--text-dim); margin:0; font-size:14px; max-width:320px; line-height:1.5; }
   #login input{
     width:280px; padding:13px 16px; border-radius:3px; border:1px solid var(--line);
-    background: var(--surface); color:var(--text); font-size:15px; font-family:'IBM Plex Sans';
+    background: var(--surface); color:var(--text); font-size:15px;
     outline:none; transition: border-color 0.2s, box-shadow 0.2s;
   }
   #login input:focus{ border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   #login button, .btn{
     padding:13px 22px; border-radius:3px; border:1px solid var(--gold-soft);
     background: var(--gold); color:#20190F; font-weight:600; font-size:14px;
-    cursor:pointer; font-family:'IBM Plex Sans'; letter-spacing:0.2px;
-    transition: all 0.15s;
+    cursor:pointer; letter-spacing:0.2px; transition: all 0.15s;
   }
   #login button:hover, .btn:hover{ background:#c9a06a; transform: translateY(-1px); }
   #login button:active, .btn:active{ transform: translateY(0); }
   #loginError{ color: var(--bad); font-size:13px; min-height:18px; margin-top:-8px; }
 
-  /* ---------- App shell ---------- */
   #app{ display:none; min-height:100vh; }
   header.topbar{
     display:flex; align-items:center; justify-content:space-between;
@@ -71,7 +68,7 @@
   #search{
     padding:10px 14px; border-radius:3px; border:1px solid var(--line);
     background: var(--surface); color:var(--text); font-size:14px; width:240px;
-    font-family:'IBM Plex Sans'; transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   #search:focus{ outline:none; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   .btn.secondary{ background: transparent; color: var(--text); border-color: var(--line); }
@@ -82,7 +79,6 @@
 
   main{ padding: 24px 32px 80px; max-width:1500px; margin:0 auto; }
 
-  /* ---------- KPI Cards ---------- */
   .kpi-grid{
     display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap:14px; margin-bottom:24px;
@@ -96,15 +92,13 @@
   .kpi-value{ font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:500; color:var(--gold); }
   .kpi-sub{ font-size:11.5px; color:var(--text-dim); margin-top:4px; }
 
-  /* ---------- Table ---------- */
   .table-wrap{ border:1px solid var(--line); border-radius:4px; overflow:hidden; }
   table{ width:100%; border-collapse:collapse; font-size:13px; }
   thead th{
     text-align:left; padding:12px 14px; background: var(--surface);
     color: var(--text-dim); font-weight:500; font-size:11px; text-transform:uppercase;
     letter-spacing:0.6px; border-bottom:1px solid var(--line); white-space:nowrap;
-    cursor:pointer; user-select:none; transition: color 0.15s;
-    position:relative;
+    cursor:pointer; user-select:none; transition: color 0.15s; position:relative;
   }
   thead th:hover{ color: var(--gold); }
   thead th.sort-asc::after{ content:' ▲'; color:var(--gold); font-size:9px; }
@@ -136,7 +130,6 @@
   .badge-cvd{ background:rgba(107,142,155,0.15); color:var(--accent); }
   .badge-other{ background:rgba(166,156,141,0.15); color:var(--text-dim); }
 
-  /* ---------- Edit panel (slide-over) ---------- */
   #overlay{
     display:none; position:fixed; inset:0; background: rgba(10,9,7,0.6);
     z-index:20; backdrop-filter: blur(3px);
@@ -165,12 +158,12 @@
     display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
     color: var(--text-dim); margin-bottom:6px;
   }
-  .field input, .field select{
+  .field input{
     width:100%; padding:10px 12px; border-radius:3px; border:1px solid var(--line);
-    background: var(--surface); color:var(--text); font-size:14px; font-family:'IBM Plex Sans';
+    background: var(--surface); color:var(--text); font-size:14px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .field input:focus, .field select:focus{ outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
+  .field input:focus{ outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   .field input.error{ border-color: var(--bad); box-shadow: 0 0 0 3px rgba(192,112,90,0.15); }
   .field-row{ display:flex; gap:12px; }
   .field-row .field{ flex:1; }
@@ -178,7 +171,10 @@
     padding:18px 24px; border-top:1px solid var(--line); display:flex; gap:10px;
   }
   .panel-foot .btn{ flex:1; text-align:center; }
-  #deleteBtn{ background:transparent; border-color: var(--bad); color: var(--bad); flex:0 0 auto; padding:13px 16px; position:relative; overflow:hidden; }
+  #deleteBtn{
+    background:transparent; border-color: var(--bad); color: var(--bad);
+    flex:0 0 auto; padding:13px 16px; position:relative; overflow:hidden;
+  }
   #deleteBtn:hover{ background: rgba(192,112,90,0.12); }
   #deleteBtn.holding{ background: var(--bad); color: var(--bg); }
   #deleteProgress{
@@ -198,7 +194,6 @@
   .computed-row .label{ color:var(--text-dim); }
   .computed-row .value{ font-family:'IBM Plex Mono', monospace; color:var(--gold); }
 
-  /* Toast */
   #toast{
     position:fixed; bottom:24px; right:24px; padding:14px 20px; border-radius:4px;
     background: var(--surface-raised); border:1px solid var(--line);
@@ -210,7 +205,6 @@
   #toast.good{ border-color: var(--good); color: var(--good); }
   #toast.bad{ border-color: var(--bad); color: var(--bad); }
 
-  /* Responsive */
   @media (max-width: 768px){
     header.topbar{ padding:14px 16px; }
     main{ padding:16px; }
@@ -327,8 +321,8 @@
 
 <script>
   // ============ CONFIGURE THIS ============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxLuZfN4s8_IVcTvhyUiIny4Bw61BNBfRMOg5eU3EWv1_plIOg9KlG_tn0PT4bl1O71GQ/exec';
-  const GOLD_RATE_PER_10G = 16000; // ₹16000 per 10g = ₹1600/g for Pg Wt
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx-3LcGBVwbsgkZyfby2zgFb9D_LkbnUdWrvwrtxvD5TpKIoCwozCl0UzPHe8W_YLvzZw/exec';
+  const GOLD_RATE_PER_10G = 16000;
   const USD_RATE = 94;
   // =========================================
 
@@ -342,12 +336,6 @@
   const $ = (id) => document.getElementById(id);
 
   // ============ UTILITIES ============
-  async function sha256(str) {
-    const buf = new TextEncoder().encode(str);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
-  }
-
   function fmtMoney(n) {
     n = parseFloat(n) || 0;
     return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -362,17 +350,9 @@
     if (!serial) return '';
     const n = parseFloat(serial);
     if (isNaN(n)) return serial;
-    // Excel epoch is 1900-01-01 (with the 1900 leap year bug)
     const epoch = new Date(1899, 11, 30);
     const date = new Date(epoch.getTime() + n * 86400000);
     return date.toISOString().split('T')[0];
-  }
-
-  function jsDateToExcelDate(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    const epoch = new Date(1899, 11, 30);
-    return Math.floor((d - epoch) / 86400000);
   }
 
   function showToast(msg, type='good') {
@@ -420,11 +400,11 @@
     $('loginBtn').textContent = 'Checking…';
 
     try {
-      const hash = await sha256(pass);
+      // Send plain text password via POST (NOT in URL, NOT hashed)
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'auth', hash })
+        body: JSON.stringify({ action: 'auth', pass: pass })
       });
       const data = await res.json();
       if (!data.ok) {
@@ -432,9 +412,8 @@
         $('loginBtn').textContent = 'Unlock';
         return;
       }
-      PASS = hash;
+      PASS = pass;
       ORDERS = (data.rows || []).filter(r => r['Style No.'] && String(r['Style No.']).trim() !== '');
-      // Convert Excel dates
       ORDERS.forEach(r => {
         if (r['Date'] && typeof r['Date'] === 'number') {
           r['Date'] = excelDateToJSDate(r['Date']);
@@ -458,7 +437,7 @@
       const res = await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'auth', hash: PASS })
+        body: JSON.stringify({ action: 'auth', pass: PASS })
       });
       const data = await res.json();
       if (data.ok) {
@@ -645,7 +624,6 @@
     openPanel();
   });
 
-  // Live preview on input
   ['f_netWt','f_multiplier','f_diamAmount','f_lCharges'].forEach(id => {
     $(id).addEventListener('input', updatePreview);
   });
@@ -810,7 +788,7 @@
     }).join(','));
 
     const csv = [headers.join(','), ...data].join('\n');
-    const blob = new Blob([format==='xls' ? csv : csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
