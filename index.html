@@ -346,6 +346,17 @@
     return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: d });
   }
 
+  // Handles dates whether the backend sends a plain 'yyyy-MM-dd' string
+  // or a full ISO timestamp like '2026-06-03T07:00:00.000Z' — displays
+  // just the date, in a readable dd-Mon-yyyy form.
+  function fmtDate(d) {
+    if (!d) return '';
+    const datePart = String(d).split('T')[0]; // strip any time/timezone portion
+    const parsed = new Date(datePart + 'T00:00:00');
+    if (isNaN(parsed)) return datePart;
+    return parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
   function excelDateToJSDate(serial) {
     if (!serial) return '';
     const n = parseFloat(serial);
@@ -501,7 +512,7 @@
         <td class="num">${r['Sr. No.'] ?? ''}</td>
         <td class="customer-cell">${getCustomerBadge(r['CUSTOMER '] ?? r['CUSTOMER'])}</td>
         <td><span class="style-tag">${r['Style No.'] ?? ''}</span></td>
-        <td>${r['Date'] ?? ''}</td>
+        <td>${fmtDate(r['Date'])}</td>
         <td class="num">${fmtNum(r['Net Wt'], 3)}</td>
         <td class="num">${fmtMoney(r['Gold Amount'])}</td>
         <td class="num">${fmtMoney(r['Diam Amount'])}</td>
@@ -596,7 +607,7 @@
     $('panelTitle').textContent = `Edit — ${order['Style No.'] ?? ''}`;
     $('f_customer').value = order['CUSTOMER '] ?? order['CUSTOMER'] ?? '';
     $('f_style').value = order['Style No.'] ?? '';
-    $('f_date').value = order['Date'] ?? '';
+    $('f_date').value = order['Date'] ? String(order['Date']).split('T')[0] : '';
     $('f_grossWt').value = order['Gross Wt'] ?? '';
     $('f_netWt').value = order['Net Wt'] ?? '';
     $('f_diaQty').value = order['Dia Qty'] ?? '';
