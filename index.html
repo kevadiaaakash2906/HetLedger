@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HET Ledger — Orders</title>
+<title>VINÉRE Ledger — Orders</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
@@ -20,8 +20,10 @@
     --good: #7A9B7E;
     --bad: #C0705A;
     --accent: #6B8E9B;
+    --header-h: 68px;
   }
   *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
   html,body{
     margin:0; padding:0; height:100%;
     background: var(--bg);
@@ -29,30 +31,64 @@
     font-family: 'IBM Plex Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
   h1,h2,h3{ font-family: 'Fraunces', serif; font-weight:600; margin:0; }
   ::selection{ background: var(--gold); color:#1E1B18; }
 
-  #login{
-    height:100vh; display:flex; align-items:center; justify-content:center;
-    flex-direction:column; gap:22px; padding:24px; text-align:center;
-  }
-  .mark{ font-family:'Fraunces', serif; font-size:34px; font-weight:700; letter-spacing:0.5px; }
+  .mark{ font-family:'Fraunces', serif; font-weight:700; letter-spacing:0.5px; display:flex; align-items:center; gap:8px; }
   .mark .dot{ color: var(--gold); }
-  #login p{ color:var(--text-dim); margin:0; font-size:14px; max-width:320px; line-height:1.5; }
+  .mark .mini-logo{ width:26px; height:26px; border-radius:50%; }
+  #login{
+    height:100vh; height:100dvh; display:flex; align-items:center; justify-content:center;
+    flex-direction:column; padding:24px; text-align:center; position:relative;
+    overflow:hidden;
+  }
+  #login::before{
+    content:''; position:absolute; top:50%; left:50%;
+    width:640px; height:640px; transform:translate(-50%,-58%);
+    background: radial-gradient(circle, var(--gold-glow) 0%, transparent 68%);
+    pointer-events:none;
+  }
+  .login-card{
+    position:relative; display:flex; flex-direction:column; align-items:center; gap:28px;
+    z-index:1;
+  }
+  .login-logo{
+    width:240px; height:auto; display:block;
+    filter: drop-shadow(0 8px 30px rgba(0,0,0,0.5));
+    transition: transform 0.2s ease;
+  }
+  .login-logo:hover{ animation: wiggle 0.5s ease; }
+  @keyframes wiggle{
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(-3deg) scale(1.03); }
+    40% { transform: rotate(3deg) scale(1.03); }
+    60% { transform: rotate(-2deg) scale(1.02); }
+    80% { transform: rotate(2deg) scale(1.02); }
+  }
   #login input{
-    width:280px; padding:13px 16px; border-radius:3px; border:1px solid var(--line);
-    background: var(--surface); color:var(--text); font-size:15px;
-    outline:none; transition: border-color 0.2s, box-shadow 0.2s;
+    width:100%; max-width:280px; padding:14px 16px; border-radius:3px; border:1px solid var(--line);
+    background: var(--surface); color:var(--text); font-size:16px;
+    outline:none; transition: border-color 0.2s, box-shadow 0.2s; margin-top:6px;
+    text-align:center; min-height:48px; -webkit-appearance:none;
   }
   #login input:focus{ border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   #login button, .btn{
-    padding:13px 22px; border-radius:3px; border:1px solid var(--gold-soft);
-    background: var(--gold); color:#20190F; font-weight:600; font-size:14px;
+    padding:14px 22px; border-radius:3px; border:1px solid var(--gold-soft);
+    background: var(--gold); color:#20190F; font-weight:600; font-size:15px;
     cursor:pointer; letter-spacing:0.2px; transition: all 0.15s;
+    min-height:48px; -webkit-tap-highlight-color:transparent;
   }
-  #login button:hover, .btn:hover{ background:#c9a06a; transform: translateY(-1px); }
-  #login button:active, .btn:active{ transform: translateY(0); }
-  #loginError{ color: var(--bad); font-size:13px; min-height:18px; margin-top:-8px; }
+  #login button:hover, .btn:hover{ background:#c9a06a; animation: wiggle 0.4s ease; }
+  #login button:active, .btn:active{ transform: scale(0.97); transition: transform 0.08s ease; }
+  #loginError{ color: var(--bad); font-size:13px; min-height:18px; }
 
   #app{ display:none; min-height:100vh; }
   header.topbar{
@@ -79,6 +115,31 @@
 
   main{ padding: 24px 32px 80px; max-width:1500px; margin:0 auto; }
 
+  .filter-bar{
+    display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .filter-group{ display:flex; flex-direction:column; gap:5px; }
+  .filter-group label{ font-size:11px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); }
+  .filter-group select, .filter-group input{
+    padding:8px 10px; border-radius:3px; border:1px solid var(--line);
+    background: var(--surface); color:var(--text); font-size:13px; min-width:150px;
+  }
+  .filter-group select:focus, .filter-group input:focus{
+    outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow);
+  }
+  .rate-note{ font-size:11.5px; color:var(--text-dim); margin-left:auto; align-self:center; white-space:nowrap; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; }
+  .btn:disabled:hover{ background:transparent; animation:none; }
+  .btn.secondary:disabled:hover{ background:transparent; }
+
+  .pagination-bar{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+    gap:12px; margin-top:16px; font-size:12.5px; color:var(--text-dim);
+  }
+  .page-controls{ display:flex; align-items:center; gap:10px; }
+  .page-num{ font-family:'IBM Plex Mono', monospace; }
+
   .kpi-grid{
     display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap:14px; margin-bottom:24px;
@@ -87,19 +148,24 @@
     background: var(--surface); border:1px solid var(--line); border-radius:4px;
     padding:16px 18px; transition: border-color 0.2s;
   }
-  .kpi-card:hover{ border-color: var(--gold-soft); }
+  .kpi-card:hover{ border-color: var(--gold-soft); animation: wiggle 0.4s ease; }
   .kpi-label{ font-size:11px; text-transform:uppercase; letter-spacing:0.6px; color:var(--text-dim); margin-bottom:6px; }
   .kpi-value{ font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:500; color:var(--gold); }
   .kpi-sub{ font-size:11.5px; color:var(--text-dim); margin-top:4px; }
 
-  .table-wrap{ border:1px solid var(--line); border-radius:4px; overflow:hidden; }
-  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  .table-wrap{ border:1px solid var(--line); border-radius:4px; overflow:visible; }
+  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
   thead th{
     text-align:left; padding:12px 14px; background: var(--surface);
     color: var(--text-dim); font-weight:500; font-size:11px; text-transform:uppercase;
     letter-spacing:0.6px; border-bottom:1px solid var(--line); white-space:nowrap;
-    cursor:pointer; user-select:none; transition: color 0.15s; position:relative;
+    cursor:pointer; user-select:none; transition: color 0.15s, box-shadow 0.2s ease;
+    position: sticky; top: var(--header-h); z-index: 5;
+    box-shadow: 0 1px 0 var(--line);
   }
+  thead.is-stuck th{ box-shadow: 0 1px 0 var(--line), 0 6px 12px -6px rgba(0,0,0,0.45); }
+  thead th:first-child{ border-top-left-radius:4px; }
+  thead th:last-child{ border-top-right-radius:4px; }
   thead th:hover{ color: var(--gold); }
   thead th.sort-asc::after{ content:' ▲'; color:var(--gold); font-size:9px; }
   thead th.sort-desc::after{ content:' ▼'; color:var(--gold); font-size:9px; }
@@ -107,13 +173,16 @@
   tbody tr{ cursor:pointer; transition: background 0.12s; }
   tbody tr:hover{ background: var(--surface); }
   tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:last-child td:first-child{ border-bottom-left-radius:4px; }
+  tbody tr:last-child td:last-child{ border-bottom-right-radius:4px; }
   tbody tr.selected{ background: var(--gold-glow); }
   .num{ font-family:'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; text-align:right; }
   .style-tag{
     font-family:'IBM Plex Mono', monospace; font-size:12px; color: var(--gold);
     background: rgba(184,147,90,0.12); padding:3px 8px; border-radius:2px;
-    position:relative; display:inline-block;
+    position:relative; display:inline-block; transition: transform 0.1s ease;
   }
+  .style-tag:hover{ animation: wiggle 0.4s ease; }
   .style-tag::before{
     content:''; position:absolute; left:0; top:0; width:4px; height:100%;
     background: var(--gold); border-radius:2px 0 0 2px;
@@ -165,8 +234,13 @@
   }
   .field input:focus{ outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   .field input.error{ border-color: var(--bad); box-shadow: 0 0 0 3px rgba(192,112,90,0.15); }
+  .field-error{ color: var(--bad); font-size:11.5px; margin-top:5px; display:none; }
+  .field.has-error .field-error{ display:block; }
   .field-row{ display:flex; gap:12px; }
   .field-row .field{ flex:1; }
+  body.view-only .panel-foot{ display:none; }
+  body.view-only tbody tr{ cursor:default; }
+  body.view-only .field input{ opacity:0.65; cursor:not-allowed; }
   .panel-foot{
     padding:18px 24px; border-top:1px solid var(--line); display:flex; gap:10px;
   }
@@ -179,7 +253,7 @@
   #deleteBtn.holding{ background: var(--bad); color: var(--bg); }
   #deleteProgress{
     position:absolute; left:0; top:0; height:100%; width:0%;
-    background: rgba(255,255,255,0.25); transition: width 0.1s linear;
+    background: rgba(255,255,255,0.25);
   }
   #saveMsg{ font-size:13px; margin-top:10px; min-height:16px; }
   #saveMsg.good{ color: var(--good); }
@@ -205,11 +279,119 @@
   #toast.good{ border-color: var(--good); color: var(--good); }
   #toast.bad{ border-color: var(--bad); color: var(--bad); }
 
+  #undoToast{
+    position:fixed; bottom:24px; right:24px; padding:14px 16px 14px 20px; border-radius:4px;
+    background: var(--surface-raised); border:1px solid var(--bad);
+    color:var(--text); font-size:13.5px; z-index:30;
+    transform: translateY(100px); opacity:0; transition: all 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    display:flex; align-items:center; gap:14px;
+  }
+  #undoToast.show{ transform: translateY(0); opacity:1; }
+  #undoToast .undo-msg{ color: var(--text-dim); }
+  #undoToast .undo-count{ font-family:'IBM Plex Mono', monospace; color: var(--bad); }
+  #undoBtn{
+    background: transparent; border:1px solid var(--gold); color: var(--gold);
+    padding:7px 14px; border-radius:3px; font-weight:600; font-size:13px; cursor:pointer;
+    white-space:nowrap; transition: all 0.15s;
+  }
+  #undoBtn:hover{ background: var(--gold); color:#20190F; animation: wiggle 0.4s ease; }
+
+  .card-list{ display:none; }
+  .order-card{
+    border:1px solid var(--line); border-radius:4px; background: var(--surface);
+    margin-bottom:10px; overflow:hidden;
+  }
+  .order-card-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:14px 16px; cursor:pointer; user-select:none;
+  }
+  .order-card-head .head-main{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+  .order-card-head .head-top{ display:flex; align-items:center; gap:8px; }
+  .order-card-head .head-sr{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-dim);
+    flex-shrink:0;
+  }
+  .order-card-head .head-sub{ color:var(--text-dim); font-size:12px; }
+  .order-card-head .head-total{ font-family:'IBM Plex Mono', monospace; font-weight:600; color:var(--gold); white-space:nowrap; }
+  .order-card-chevron{
+    transition: transform 0.25s ease, color 0.15s ease; color: var(--text-dim); flex-shrink:0;
+    padding:10px; margin:-10px; border-radius:50%; box-sizing:content-box;
+  }
+  .order-card.open .order-card-chevron:hover{ color: var(--gold); }
+  .order-card.open .order-card-chevron{ transform: rotate(180deg); }
+  .order-card-body{
+    max-height:0; overflow:hidden; transition: max-height 0.3s ease;
+    border-top: 1px solid transparent;
+  }
+  .order-card.open .order-card-body{
+    border-top:1px solid var(--line);
+  }
+  .order-card-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px 16px; padding:14px 16px;
+  }
+  .order-card-grid .field-item .k{ font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--text-dim); }
+  .order-card-grid .field-item .v{ font-family:'IBM Plex Mono', monospace; font-size:13.5px; margin-top:2px; }
+
+  .skel{
+    display:inline-block; background: linear-gradient(90deg, var(--line) 0%, var(--surface-raised) 50%, var(--line) 100%);
+    background-size: 200% 100%; animation: skelShimmer 1.3s ease-in-out infinite;
+    border-radius:3px; color:transparent !important;
+  }
+  @keyframes skelShimmer{
+    0%{ background-position: 200% 0; }
+    100%{ background-position: -200% 0; }
+  }
+  .skel-row td{ padding:11px 14px; }
+  .skel-row .skel{ display:block; height:13px; width:70%; }
+  .skel-card{
+    border:1px solid var(--line); border-radius:4px; background: var(--surface);
+    margin-bottom:10px; padding:14px 16px; display:flex; justify-content:space-between; gap:10px;
+  }
+  .skel-card .skel{ height:14px; }
+  .skel-card .skel.w1{ width:90px; }
+  .skel-card .skel.w2{ width:120px; margin-top:8px; }
+  .skel-card .skel.w3{ width:70px; }
+
+  #screenFx{
+    position:fixed; inset:0; z-index:50; pointer-events:none;
+    opacity:0;
+    background: radial-gradient(circle at 50% 38%, var(--fx-color, var(--gold-glow)) 0%, transparent 62%);
+  }
+  #screenFx.play-add{ animation: fxAdd 0.85s ease-out; }
+  #screenFx.play-delete{ animation: fxDelete 0.85s ease-out; }
+  @keyframes fxAdd{
+    0%{ opacity:0; transform:scale(0.85); }
+    35%{ opacity:1; transform:scale(1); }
+    100%{ opacity:0; transform:scale(1.2); }
+  }
+  @keyframes fxDelete{
+    0%{ opacity:0; transform:scale(1.1); }
+    30%{ opacity:0.9; transform:scale(1); }
+    100%{ opacity:0; transform:scale(0.9); }
+  }
+  #screenFx::after{
+    content:''; position:absolute; inset:0;
+    border: 2px solid var(--fx-border, var(--gold));
+    opacity:0;
+  }
+  #screenFx.play-add::after, #screenFx.play-delete::after{ animation: fxRing 0.85s ease-out; }
+  @keyframes fxRing{
+    0%{ opacity:0.9; }
+    100%{ opacity:0; }
+  }
+
   @media (max-width: 768px){
     header.topbar{ padding:14px 16px; }
     main{ padding:16px; }
     .kpi-grid{ grid-template-columns: repeat(2, 1fr); }
     #panel{ width:100vw; max-width:100vw; }
+    .table-wrap{ display:none; }
+    .card-list{ display:block; }
+    .filter-bar{ gap:10px; }
+    .filter-group select, .filter-group input{ min-width:0; flex:1; }
+    .rate-note{ margin-left:0; order:99; width:100%; }
+    .pagination-bar{ justify-content:center; text-align:center; }
   }
 </style>
 </head>
@@ -217,37 +399,53 @@
 
 <!-- ============ LOGIN ============ -->
 <div id="login">
-  <div class="mark">HET<span class="dot">·</span>Ledger</div>
-  <p>Staff access only. Enter the shared password to view and manage orders.</p>
-  <input id="passInput" type="password" placeholder="Staff password" autofocus autocomplete="off">
-  <button id="loginBtn">Unlock</button>
-  <div id="loginError"></div>
+  <div class="login-card">
+    <img class="login-logo" src="vinere-logo-white.png" alt="VINÉRE Jewellery">
+    <input id="passInput" type="password" placeholder="Access code" autofocus autocomplete="off">
+    <button id="loginBtn">Unlock</button>
+    <div id="loginError"></div>
+  </div>
 </div>
 
 <!-- ============ APP ============ -->
 <div id="app">
   <header class="topbar">
     <div class="titles">
-      <div class="mark">HET<span class="dot">·</span>Ledger</div>
+      <div class="mark">VINÉRE<span class="dot">·</span>Ledger</div>
       <div class="sub">Orders Delivered</div>
     </div>
     <div class="controls">
       <input id="search" placeholder="Search customer, style, or date…" autocomplete="off">
-      <button class="btn secondary small" id="exportCsvBtn">Export CSV</button>
-      <button class="btn secondary small" id="exportXlsBtn">Export Excel</button>
       <button class="btn secondary" id="refreshBtn">Refresh</button>
       <button class="btn" id="newOrderBtn">+ New order</button>
     </div>
   </header>
 
   <main>
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Customer</label>
+        <select id="filterCustomer"><option value="">All customers</option></select>
+      </div>
+      <div class="filter-group">
+        <label>From</label>
+        <input type="date" id="filterDateFrom">
+      </div>
+      <div class="filter-group">
+        <label>To</label>
+        <input type="date" id="filterDateTo">
+      </div>
+      <button class="btn secondary small" id="clearFiltersBtn">Clear filters</button>
+      <span class="rate-note" id="rateNote"></span>
+    </div>
+
     <div class="kpi-grid" id="kpiGrid"></div>
 
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th data-key="sr">Sr.</th>
+            <th class="num" data-key="sr">Sr.</th>
             <th data-key="customer">Customer</th>
             <th data-key="style">Style No.</th>
             <th data-key="date">Date</th>
@@ -260,10 +458,14 @@
           </tr>
         </thead>
         <tbody id="tbody">
-          <tr class="loading-row"><td colspan="10">Loading orders…</td></tr>
+          <tr class="skel-row"><td colspan="10"><span class="skel" style="width:100%">Loading…</span></td></tr>
         </tbody>
       </table>
     </div>
+
+    <div class="card-list" id="cardList"></div>
+
+    <div class="pagination-bar" id="paginationBar"></div>
   </main>
 </div>
 
@@ -275,25 +477,25 @@
     <button id="closePanel">&times;</button>
   </div>
   <div class="panel-body">
-    <div class="field"><label>Customer *</label><input id="f_customer" placeholder="e.g. HET"></div>
-    <div class="field"><label>Style No. *</label><input id="f_style" placeholder="e.g. SLER-0079 I"></div>
+    <div class="field"><label>Customer *</label><input id="f_customer" placeholder="e.g. HET"><div class="field-error" id="err_f_customer"></div></div>
+    <div class="field"><label>Style No. *</label><input id="f_style" placeholder="e.g. SLER-0079 I"><div class="field-error" id="err_f_style"></div></div>
     <div class="field"><label>Date</label><input id="f_date" type="date"></div>
 
     <div class="field-row">
-      <div class="field"><label>Gross Wt (g)</label><input id="f_grossWt" type="number" step="0.001" placeholder="0.000"></div>
-      <div class="field"><label>Net Wt (g) *</label><input id="f_netWt" type="number" step="0.001" placeholder="0.000"></div>
+      <div class="field"><label>Gross Wt (g)</label><input id="f_grossWt" type="number" step="0.001" placeholder="0.000"><div class="field-error" id="err_f_grossWt"></div></div>
+      <div class="field"><label>Net Wt (g) *</label><input id="f_netWt" type="number" step="0.001" placeholder="0.000"><div class="field-error" id="err_f_netWt"></div></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Dia Qty</label><input id="f_diaQty" type="number" step="1" placeholder="0"></div>
-      <div class="field"><label>IN CT</label><input id="f_inCt" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="field"><label>Dia Qty</label><input id="f_diaQty" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_diaQty"></div></div>
+      <div class="field"><label>IN CT</label><input id="f_inCt" type="number" step="0.01" placeholder="0.00"><div class="field-error" id="err_f_inCt"></div></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Colour Stone</label><input id="f_colourStone" type="number" step="1" placeholder="0"></div>
-      <div class="field"><label>Multiplier</label><input id="f_multiplier" type="number" step="0.001" value="0.595" placeholder="0.595"></div>
+      <div class="field"><label>Colour Stone</label><input id="f_colourStone" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_colourStone"></div></div>
+      <div class="field"><label>Multiplier</label><input id="f_multiplier" type="number" step="0.001" value="0.595" placeholder="0.595"><div class="field-error" id="err_f_multiplier"></div></div>
     </div>
     <div class="field-row">
-      <div class="field"><label>Diamond Amount (₹)</label><input id="f_diamAmount" type="number" step="1" placeholder="0"></div>
-      <div class="field"><label>L Charges (₹/g)</label><input id="f_lCharges" type="number" step="1" placeholder="900"></div>
+      <div class="field"><label>Diamond Amount (₹)</label><input id="f_diamAmount" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_diamAmount"></div></div>
+      <div class="field"><label>L Charges (₹/g)</label><input id="f_lCharges" type="number" step="1" placeholder="900"><div class="field-error" id="err_f_lCharges"></div></div>
     </div>
 
     <div class="computed-preview">
@@ -317,23 +519,86 @@
   </div>
 </div>
 
+<div id="screenFx"></div>
 <div id="toast"></div>
+<div id="undoToast">
+  <span class="undo-msg">Order deleted — <span class="undo-count" id="undoCount">60</span>s left</span>
+  <button id="undoBtn">Undo</button>
+</div>
 
 <script>
   // ============ CONFIGURE THIS ============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzg05QdulALk-vc8VKwZOs8jg19o3PBPRUv6vusn7NcbfFGoBbBHeaP4lL3lGihFIqZ/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9LYg3NImB1HqtvKHgewoewMIOUc8r-4kWx3leJdp2Eiz3CRgMs7IXjnqz7FG59LqUjQ/exec';
   const GOLD_RATE_PER_10G = 16000;
   const USD_RATE = 94;
   // =========================================
 
+  // ---------- JSONP helper ----------
+  // Loads data via a <script> tag instead of fetch(). Script tags are not
+  // subject to CORS, which sidesteps Apps Script's unreliable CORS headers
+  // that were blocking fetch() from this GitHub Pages domain.
+  let jsonpCounter = 0;
+  function jsonp(payload) {
+    return new Promise((resolve, reject) => {
+      const cbName = '__jsonp_cb_' + (jsonpCounter++);
+      const qs = Object.entries(payload)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(typeof v === 'object' ? JSON.stringify(v) : v)}`)
+        .join('&');
+
+      const script = document.createElement('script');
+      const timer = setTimeout(() => { cleanup(); reject(new Error('Request timed out')); }, 15000);
+
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        script.remove();
+      }
+
+      window[cbName] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); reject(new Error('Could not reach the script')); };
+      script.src = `${APPS_SCRIPT_URL}?${qs}&callback=${cbName}`;
+      document.body.appendChild(script);
+    });
+  }
+
   let PASS = '';
+  let ROLE = 'staff';
   let ORDERS = [];
   let editingRow = null;
   let sortKey = null;
   let sortDir = 'asc';
-  let deleteHoldTimer = null;
+  let deleteHoldRAF = null;
 
   const $ = (id) => document.getElementById(id);
+  $('rateNote').textContent = `Gold: ₹${GOLD_RATE_PER_10G.toLocaleString('en-IN')}/10g · $1 = ₹${USD_RATE} (fixed rates)`;
+
+  // Keep the sticky table-header offset in sync with the real topbar
+  // height, since it wraps to a taller block on narrow screens.
+  function syncHeaderHeight() {
+    const topbar = document.querySelector('header.topbar');
+    if (topbar) document.documentElement.style.setProperty('--header-h', topbar.offsetHeight + 'px');
+    updateStuckHeader();
+    document.querySelectorAll('.order-card.open .order-card-body').forEach(body => {
+      body.style.maxHeight = body.scrollHeight + 'px';
+    });
+  }
+  let resizeDebounceTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeDebounceTimer);
+    resizeDebounceTimer = setTimeout(syncHeaderHeight, 100);
+  });
+  window.addEventListener('load', syncHeaderHeight);
+
+  // Adds a drop shadow under the table header only once it's actually
+  // pinned in place, so it doesn't look like it's floating at rest.
+  function updateStuckHeader() {
+    const theadEl = document.querySelector('#app thead');
+    if (!theadEl) return;
+    const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
+    const rect = theadEl.getBoundingClientRect();
+    theadEl.classList.toggle('is-stuck', rect.top <= headerH + 1);
+  }
+  window.addEventListener('scroll', updateStuckHeader, { passive: true });
 
   // ============ UTILITIES ============
   function fmtMoney(n) {
@@ -366,12 +631,74 @@
     return date.toISOString().split('T')[0];
   }
 
+  // Brief full-screen flash shown after a successful add or delete, so the
+  // change feels felt across the whole screen, not just in the toast.
+  function playScreenFx(kind) {
+    const el = $('screenFx');
+    if (!el) return;
+    if (kind === 'delete') {
+      el.style.setProperty('--fx-color', 'rgba(192,112,90,0.28)');
+      el.style.setProperty('--fx-border', 'var(--bad)');
+    } else {
+      el.style.setProperty('--fx-color', 'rgba(184,147,90,0.28)');
+      el.style.setProperty('--fx-border', 'var(--gold)');
+    }
+    el.classList.remove('play-add', 'play-delete');
+    void el.offsetWidth; // force reflow so the animation restarts every time
+    el.classList.add(kind === 'delete' ? 'play-delete' : 'play-add');
+  }
+
   function showToast(msg, type='good') {
     const t = $('toast');
     t.textContent = msg;
     t.className = type;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ============ UNDO DELETE (60-second window) ============
+  let undoTimer = null;
+  let undoCountdownTimer = null;
+
+  function showUndoToast(token) {
+    if (!token) { showToast('Order deleted'); return; }
+
+    clearTimeout(undoTimer);
+    clearInterval(undoCountdownTimer);
+
+    const toast = $('undoToast');
+    const countEl = $('undoCount');
+    let secondsLeft = 60;
+    countEl.textContent = secondsLeft;
+    toast.classList.add('show');
+
+    undoCountdownTimer = setInterval(() => {
+      secondsLeft -= 1;
+      countEl.textContent = Math.max(secondsLeft, 0);
+      if (secondsLeft <= 0) clearInterval(undoCountdownTimer);
+    }, 1000);
+
+    undoTimer = setTimeout(() => {
+      toast.classList.remove('show');
+      clearInterval(undoCountdownTimer);
+    }, 60000);
+
+    $('undoBtn').onclick = async () => {
+      clearTimeout(undoTimer);
+      clearInterval(undoCountdownTimer);
+      toast.classList.remove('show');
+      try {
+        const data = await jsonp({ pass: PASS, action: 'undo', token: token });
+        if (data.ok) {
+          showToast('Order restored');
+          await refreshOrders();
+        } else {
+          showToast(data.error || 'Could not undo — window may have expired', 'bad');
+        }
+      } catch (err) {
+        showToast('Network error — could not undo', 'bad');
+      }
+    };
   }
 
   // ============ FORMULAS ============
@@ -411,19 +738,14 @@
     $('loginBtn').textContent = 'Checking…';
 
     try {
-      // Send plain text password via POST (NOT in URL, NOT hashed)
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'auth', pass: pass })
-      });
-      const data = await res.json();
+      const data = await jsonp({ action: 'auth', pass: pass });
       if (!data.ok) {
         $('loginError').textContent = data.error || 'Wrong password';
         $('loginBtn').textContent = 'Unlock';
         return;
       }
       PASS = pass;
+      ROLE = data.role || 'staff';
       ORDERS = (data.rows || []).filter(r => r['Style No.'] && String(r['Style No.']).trim() !== '');
       ORDERS.forEach(r => {
         if (r['Date'] && typeof r['Date'] === 'number') {
@@ -432,8 +754,12 @@
       });
       $('login').style.display = 'none';
       $('app').style.display = 'block';
+      syncHeaderHeight();
+      applyRoleRestrictions();
       renderKPIs();
-      renderTable(ORDERS);
+      populateCustomerFilter();
+      currentPage = 1;
+      renderResults(applyFilter());
       showToast(`Welcome. ${ORDERS.length} orders loaded.`);
     } catch (err) {
       $('loginError').textContent = 'Could not reach the sheet. Check the Apps Script URL and your connection.';
@@ -441,32 +767,104 @@
     }
   }
 
+  // Customers get view-only access: no adding, editing, or deleting.
+  // The backend also enforces this — this just keeps the UI honest.
+  function applyRoleRestrictions() {
+    const isStaff = ROLE === 'staff';
+    const newOrderBtn = $('newOrderBtn');
+    if (newOrderBtn) newOrderBtn.style.display = isStaff ? '' : 'none';
+    document.body.classList.toggle('view-only', !isStaff);
+  }
+
+  // ============ SKELETON LOADING STATE ============
+  // Shown while the sheet is being fetched so the layout feels immediately
+  // responsive instead of flashing an empty page or plain "Loading…" text.
+  function renderSkeleton(count = 6) {
+    const tbody = $('tbody');
+    tbody.innerHTML = Array.from({ length: count }).map(() => `
+      <tr class="skel-row">
+        <td><span class="skel" style="width:24px">•</span></td>
+        <td><span class="skel" style="width:70px">•</span></td>
+        <td><span class="skel" style="width:90px">•</span></td>
+        <td><span class="skel" style="width:80px">•</span></td>
+        <td class="num"><span class="skel" style="width:50px">•</span></td>
+        <td class="num"><span class="skel" style="width:70px">•</span></td>
+        <td class="num"><span class="skel" style="width:70px">•</span></td>
+        <td class="num"><span class="skel" style="width:60px">•</span></td>
+        <td class="num"><span class="skel" style="width:80px">•</span></td>
+        <td class="num"><span class="skel" style="width:50px">•</span></td>
+      </tr>
+    `).join('');
+
+    const list = $('cardList');
+    list.innerHTML = Array.from({ length: count }).map(() => `
+      <div class="skel-card">
+        <div><span class="skel w1">•</span><span class="skel w2">•</span></div>
+        <span class="skel w3">•</span>
+      </div>
+    `).join('');
+  }
+
+  // Shown when a refresh genuinely fails, so the skeleton doesn't spin
+  // forever with no way out except guessing to hit Refresh again.
+  function renderErrorState(msg) {
+    const errorHtml = `
+      <div class="empty-state">
+        <h3>Couldn't load orders</h3>
+        <p>${msg}</p>
+        <button class="btn secondary small" id="retryLoadBtn" style="margin-top:14px;">Retry</button>
+      </div>
+    `;
+    $('tbody').innerHTML = `<tr><td colspan="10">${errorHtml}</td></tr>`;
+    $('cardList').innerHTML = errorHtml;
+    $('paginationBar').innerHTML = '';
+    const bind = (el) => el && el.addEventListener('click', refreshOrders);
+    bind(document.querySelector('#tbody #retryLoadBtn'));
+    bind(document.querySelector('#cardList #retryLoadBtn'));
+  }
+
   // ============ REFRESH ============
   async function refreshOrders() {
-    $('tbody').innerHTML = '<tr class="loading-row"><td colspan="10">Refreshing…</td></tr>';
+    renderSkeleton();
     try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: 'auth', pass: PASS })
-      });
-      const data = await res.json();
+      const data = await jsonp({ action: 'auth', pass: PASS });
       if (data.ok) {
         ORDERS = (data.rows || []).filter(r => r['Style No.'] && String(r['Style No.']).trim() !== '');
         ORDERS.forEach(r => {
           if (r['Date'] && typeof r['Date'] === 'number') r['Date'] = excelDateToJSDate(r['Date']);
         });
         renderKPIs();
-        renderTable(applyFilter());
+        populateCustomerFilter();
+        renderResults(applyFilter());
         showToast('Orders refreshed');
+      } else {
+        renderErrorState(data.error || 'The sheet returned an error.');
+        showToast('Refresh failed', 'bad');
       }
     } catch (err) {
+      renderErrorState('Check your connection and try again.');
       showToast('Refresh failed', 'bad');
     }
   }
   $('refreshBtn').addEventListener('click', refreshOrders);
 
   // ============ KPIs ============
+  let kpiRawValues = {};
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function animateKpiValue(el, from, to, formatter, duration = 500) {
+    if (prefersReducedMotion || from === to) { el.textContent = formatter(to); return; }
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      el.textContent = formatter(from + (to - from) * eased);
+      if (t < 1) requestAnimationFrame(tick);
+      else el.textContent = formatter(to);
+    }
+    requestAnimationFrame(tick);
+  }
+
   function renderKPIs() {
     const totalOrders = ORDERS.length;
     const totalRevenue = ORDERS.reduce((s, r) => s + (parseFloat(r['SUB TOTAL'])||0), 0);
@@ -476,21 +874,31 @@
     const totalDiaCt = ORDERS.reduce((s, r) => s + (parseFloat(r['IN CT'])||0), 0);
 
     const kpis = [
-      { label: 'Total Orders', value: totalOrders, sub: 'across all customers' },
-      { label: 'Sub Total', value: fmtMoney(totalRevenue), sub: '₹' + fmtNum(totalRevenue/100000, 2) + ' Lakhs' },
-      { label: 'Gold Amount', value: fmtMoney(totalGold), sub: fmtNum((totalGold/totalRevenue)*100, 1) + '% of revenue' },
-      { label: 'Diamond Amount', value: fmtMoney(totalDiam), sub: fmtNum((totalDiam/totalRevenue)*100, 1) + '% of revenue' },
-      { label: 'Net Weight', value: fmtNum(totalNetWt, 2) + ' g', sub: 'total gold weight' },
-      { label: 'Diamonds', value: fmtNum(totalDiaCt, 2) + ' ct', sub: 'total carat weight' },
+      { key:'orders', label: 'Total Orders', raw: totalOrders, fmt: v => Math.round(v).toLocaleString('en-IN'), sub: 'across all customers' },
+      { key:'revenue', label: 'Sub Total', raw: totalRevenue, fmt: v => fmtMoney(v), sub: '₹' + fmtNum(totalRevenue/100000, 2) + ' Lakhs' },
+      { key:'gold', label: 'Gold Amount', raw: totalGold, fmt: v => fmtMoney(v), sub: fmtNum((totalGold/totalRevenue)*100, 1) + '% of revenue' },
+      { key:'diam', label: 'Diamond Amount', raw: totalDiam, fmt: v => fmtMoney(v), sub: fmtNum((totalDiam/totalRevenue)*100, 1) + '% of revenue' },
+      { key:'netwt', label: 'Net Weight', raw: totalNetWt, fmt: v => fmtNum(v, 2) + ' g', sub: 'total gold weight' },
+      { key:'diact', label: 'Diamonds', raw: totalDiaCt, fmt: v => fmtNum(v, 2) + ' ct', sub: 'total carat weight' },
     ];
 
-    $('kpiGrid').innerHTML = kpis.map(k => `
+    const grid = $('kpiGrid');
+    const isFirstRender = grid.children.length === 0;
+
+    grid.innerHTML = kpis.map(k => `
       <div class="kpi-card">
         <div class="kpi-label">${k.label}</div>
-        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-value" data-kpi="${k.key}">${k.fmt(isFirstRender ? k.raw : (kpiRawValues[k.key] ?? 0))}</div>
         <div class="kpi-sub">${k.sub}</div>
       </div>
     `).join('');
+
+    kpis.forEach(k => {
+      const el = grid.querySelector(`[data-kpi="${k.key}"]`);
+      const from = isFirstRender ? k.raw : (kpiRawValues[k.key] ?? 0);
+      if (!isFirstRender) animateKpiValue(el, from, k.raw, k.fmt);
+      kpiRawValues[k.key] = k.raw;
+    });
   }
 
   // ============ TABLE ============
@@ -505,6 +913,7 @@
     const tbody = $('tbody');
     if (!rows.length) {
       tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><h3>No orders found</h3><p>Try a different search, or add a new order.</p></div></td></tr>`;
+      renderCards(rows);
       return;
     }
     tbody.innerHTML = rows.map(r => `
@@ -529,6 +938,79 @@
         openEdit(parseInt(tr.dataset.row));
       });
     });
+
+    renderCards(rows);
+  }
+
+  // Mobile view: same data as the table, but as a collapsible accordion list
+  // so a long order history doesn't force endless horizontal scrolling.
+  function renderCards(rows) {
+    const list = $('cardList');
+    if (!rows.length) {
+      list.innerHTML = `<div class="empty-state"><h3>No orders found</h3><p>Try a different search, or add a new order.</p></div>`;
+      return;
+    }
+    list.innerHTML = rows.map(r => `
+      <div class="order-card" data-row="${r._row}">
+        <div class="order-card-head">
+          <div class="head-main">
+            <div class="head-top">
+              <span class="head-sr">#${r['Sr. No.'] ?? ''}</span>
+              <span class="style-tag">${r['Style No.'] ?? ''}</span>
+            </div>
+            <span class="head-sub">${getCustomerBadge(r['CUSTOMER '] ?? r['CUSTOMER'])} · ${fmtDate(r['Date'])}</span>
+          </div>
+          <div class="head-total">${fmtMoney(r['SUB TOTAL'])}</div>
+          <svg class="order-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="order-card-body">
+          <div class="order-card-grid">
+            <div class="field-item"><div class="k">Net Wt</div><div class="v">${fmtNum(r['Net Wt'], 3)}</div></div>
+            <div class="field-item"><div class="k">Gold Amt</div><div class="v">${fmtMoney(r['Gold Amount'])}</div></div>
+            <div class="field-item"><div class="k">Diam Amt</div><div class="v">${fmtMoney(r['Diam Amount'])}</div></div>
+            <div class="field-item"><div class="k">Labor</div><div class="v">${fmtMoney(r['LABOR AMOUNT'])}</div></div>
+            <div class="field-item"><div class="k">$</div><div class="v">${fmtNum(r['$'], 2)}</div></div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.order-card').forEach(card => {
+      const head = card.querySelector('.order-card-head');
+      head.addEventListener('click', (e) => {
+        // Tapping the chevron always just opens/closes the tile. Tapping
+        // the rest of the header opens edit mode once the tile is already
+        // expanded (a second tap "drills in"), same as tapping a table row.
+        const onChevron = !!e.target.closest('.order-card-chevron');
+        if (card.classList.contains('open')) {
+          if (onChevron) {
+            closeCard(card);
+          } else {
+            openEdit(parseInt(card.dataset.row));
+          }
+          return;
+        }
+        openCard(card);
+      });
+    });
+  }
+
+  function openCard(card) {
+    $('cardList').querySelectorAll('.order-card.open').forEach(c => { if (c !== card) closeCard(c); });
+    card.classList.add('open');
+    const body = card.querySelector('.order-card-body');
+    body.style.maxHeight = body.scrollHeight + 'px';
+  }
+
+  function closeCard(card) {
+    const body = card.querySelector('.order-card-body');
+    // Lock in the current rendered height first so the transition always
+    // has a real starting point to animate down from.
+    body.style.maxHeight = body.scrollHeight + 'px';
+    requestAnimationFrame(() => {
+      card.classList.remove('open');
+      body.style.maxHeight = '0px';
+    });
   }
 
   // ============ SORTING ============
@@ -543,7 +1025,8 @@
       }
       document.querySelectorAll('thead th').forEach(t => t.classList.remove('sort-asc','sort-desc'));
       th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
-      renderTable(applyFilter());
+      currentPage = 1;
+      renderResults(applyFilter());
     });
   });
 
@@ -570,19 +1053,92 @@
   }
 
   // ============ SEARCH & FILTER ============
+  function populateCustomerFilter() {
+    const sel = $('filterCustomer');
+    const current = sel.value;
+    const customers = [...new Set(
+      ORDERS.map(r => String(r['CUSTOMER '] ?? r['CUSTOMER'] ?? '').trim()).filter(Boolean)
+    )].sort();
+    sel.innerHTML = '<option value="">All customers</option>' +
+      customers.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (customers.includes(current)) sel.value = current;
+  }
+
   function applyFilter() {
     const q = $('search').value.trim().toLowerCase();
+    const customer = $('filterCustomer').value;
+    const dateFrom = $('filterDateFrom').value;
+    const dateTo = $('filterDateTo').value;
+
     let filtered = ORDERS;
     if (q) {
-      filtered = ORDERS.filter(r =>
+      filtered = filtered.filter(r =>
         String(r['CUSTOMER '] ?? r['CUSTOMER'] ?? '').toLowerCase().includes(q) ||
         String(r['Style No.'] ?? '').toLowerCase().includes(q) ||
         String(r['Date'] ?? '').includes(q)
       );
     }
+    if (customer) {
+      filtered = filtered.filter(r => String(r['CUSTOMER '] ?? r['CUSTOMER'] ?? '').trim() === customer);
+    }
+    if (dateFrom) {
+      filtered = filtered.filter(r => String(r['Date'] ?? '').split('T')[0] >= dateFrom);
+    }
+    if (dateTo) {
+      filtered = filtered.filter(r => String(r['Date'] ?? '').split('T')[0] <= dateTo);
+    }
     return sortRows(filtered);
   }
-  $('search').addEventListener('input', () => renderTable(applyFilter()));
+  let searchDebounceTimer = null;
+  $('search').addEventListener('input', () => {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => { currentPage = 1; renderResults(applyFilter()); }, 150);
+  });
+  ['filterCustomer','filterDateFrom','filterDateTo'].forEach(id => {
+    $(id).addEventListener('change', () => { currentPage = 1; renderResults(applyFilter()); });
+  });
+  $('clearFiltersBtn').addEventListener('click', () => {
+    $('search').value = '';
+    $('filterCustomer').value = '';
+    $('filterDateFrom').value = '';
+    $('filterDateTo').value = '';
+    currentPage = 1;
+    renderResults(applyFilter());
+  });
+
+  // ============ PAGINATION ============
+  const PAGE_SIZE = 25;
+  let currentPage = 1;
+
+  // The single entry point for showing a result set: pages it, renders the
+  // table/cards for just that page, and updates the pagination controls.
+  // Sorting and search/filter both flow back through here.
+  function renderResults(rows) {
+    const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageRows = rows.slice(start, start + PAGE_SIZE);
+    renderTable(pageRows);
+    renderPagination(rows.length, start, pageRows.length);
+  }
+
+  function renderPagination(total, start, pageCount) {
+    const bar = $('paginationBar');
+    if (!bar) return;
+    if (total === 0) { bar.innerHTML = ''; return; }
+    const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    bar.innerHTML = `
+      <span class="page-info">Showing ${start + 1}–${start + pageCount} of ${total} orders</span>
+      <div class="page-controls">
+        <button class="btn secondary small" id="prevPageBtn" ${currentPage <= 1 ? 'disabled' : ''}>Prev</button>
+        <span class="page-num">Page ${currentPage} of ${totalPages}</span>
+        <button class="btn secondary small" id="nextPageBtn" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+      </div>
+    `;
+    $('prevPageBtn').addEventListener('click', () => { currentPage--; renderResults(applyFilter()); });
+    $('nextPageBtn').addEventListener('click', () => { currentPage++; renderResults(applyFilter()); });
+  }
 
   // ============ PANEL ============
   function openPanel() {
@@ -590,6 +1146,8 @@
     $('panel').classList.add('open');
     $('saveMsg').textContent = '';
     $('saveMsg').className = '';
+    clearAllFieldErrors();
+    formDirty = false;
     updatePreview();
   }
   function closePanelFn() {
@@ -597,14 +1155,30 @@
     $('panel').classList.remove('open');
     document.querySelectorAll('tbody tr').forEach(r => r.classList.remove('selected'));
   }
-  $('closePanel').addEventListener('click', closePanelFn);
-  $('overlay').addEventListener('click', closePanelFn);
+
+  // Warns before discarding a form the person has actually started typing
+  // into, so an accidental tap on the backdrop or X doesn't silently lose
+  // their work. Only wired to the user-facing close controls — internal
+  // calls to closePanelFn() after a successful save/delete skip this.
+  let formDirty = false;
+  document.querySelectorAll('#panel .field input').forEach(inp => {
+    inp.addEventListener('input', () => { formDirty = true; });
+  });
+  function requestClosePanel() {
+    if (formDirty && !document.body.classList.contains('view-only')) {
+      if (!confirm('Discard unsaved changes to this order?')) return;
+    }
+    closePanelFn();
+  }
+  $('closePanel').addEventListener('click', requestClosePanel);
+  $('overlay').addEventListener('click', requestClosePanel);
 
   function openEdit(rowNum) {
     const order = ORDERS.find(r => r._row === rowNum);
     if (!order) return;
     editingRow = rowNum;
-    $('panelTitle').textContent = `Edit — ${order['Style No.'] ?? ''}`;
+    const isStaff = ROLE === 'staff';
+    $('panelTitle').textContent = `${isStaff ? 'Edit' : 'View'} — ${order['Style No.'] ?? ''}`;
     $('f_customer').value = order['CUSTOMER '] ?? order['CUSTOMER'] ?? '';
     $('f_style').value = order['Style No.'] ?? '';
     $('f_date').value = order['Date'] ? String(order['Date']).split('T')[0] : '';
@@ -616,7 +1190,8 @@
     $('f_multiplier').value = order['Multiplier'] ?? '0.595';
     $('f_diamAmount').value = order['Diam Amount'] ?? '';
     $('f_lCharges').value = order['L CHARGES'] ?? '';
-    $('deleteBtn').style.display = 'inline-block';
+    document.querySelectorAll('#panel .field input').forEach(inp => inp.readOnly = !isStaff);
+    $('deleteBtn').style.display = isStaff ? 'inline-block' : 'none';
     $('deleteText').textContent = 'Delete';
     $('deleteBtn').classList.remove('holding');
     $('deleteProgress').style.width = '0%';
@@ -655,17 +1230,68 @@
     };
   }
 
+  function setFieldError(id, msg) {
+    const field = $(id).closest('.field');
+    const errEl = $('err_' + id);
+    if (msg) {
+      field.classList.add('has-error');
+      $(id).classList.add('error');
+      if (errEl) errEl.textContent = msg;
+    } else {
+      field.classList.remove('has-error');
+      $(id).classList.remove('error');
+      if (errEl) errEl.textContent = '';
+    }
+  }
+
+  function clearAllFieldErrors() {
+    ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges']
+      .forEach(id => setFieldError(id, ''));
+  }
+
+  // Live-clear a field's error as soon as the person edits it, rather than
+  // making them hit Save again just to see if it's fixed.
+  ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges']
+    .forEach(id => $(id).addEventListener('input', () => setFieldError(id, '')));
+
   function validateFields(fields) {
+    clearAllFieldErrors();
     let valid = true;
-    ['f_customer','f_style','f_netWt'].forEach(id => {
-      const el = $(id);
-      if (!el.value.trim()) {
-        el.classList.add('error');
-        valid = false;
-      } else {
-        el.classList.remove('error');
+    const fail = (id, msg) => { setFieldError(id, msg); valid = false; };
+
+    if (!fields.customer) fail('f_customer', 'Customer is required.');
+    if (!fields.style) fail('f_style', 'Style No. is required.');
+
+    // Net Wt is required and must be a real positive number — everything
+    // downstream (gold amount, sub total, $) is derived from it.
+    if (!String(fields.netWt).trim()) {
+      fail('f_netWt', 'Net Wt is required.');
+    } else if (isNaN(parseFloat(fields.netWt)) || parseFloat(fields.netWt) <= 0) {
+      fail('f_netWt', 'Net Wt must be a positive number.');
+    }
+
+    if (String(fields.grossWt).trim() !== '') {
+      const gross = parseFloat(fields.grossWt);
+      if (isNaN(gross) || gross < 0) {
+        fail('f_grossWt', 'Gross Wt must be a positive number.');
+      } else if (!isNaN(parseFloat(fields.netWt)) && gross < parseFloat(fields.netWt)) {
+        fail('f_grossWt', 'Gross Wt can\'t be less than Net Wt.');
+      }
+    }
+
+    [['f_diaQty', fields.diaQty, 'Dia Qty'], ['f_inCt', fields.inCt, 'IN CT'],
+     ['f_colourStone', fields.colourStone, 'Colour Stone'], ['f_diamAmount', fields.diamAmount, 'Diamond Amount'],
+     ['f_lCharges', fields.lCharges, 'L Charges']].forEach(([id, val, label]) => {
+      if (String(val).trim() !== '' && (isNaN(parseFloat(val)) || parseFloat(val) < 0)) {
+        fail(id, `${label} can't be negative.`);
       }
     });
+
+    if (String(fields.multiplier).trim() !== '') {
+      const m = parseFloat(fields.multiplier);
+      if (isNaN(m) || m <= 0) fail('f_multiplier', 'Multiplier must be a positive number.');
+    }
+
     return valid;
   }
 
@@ -673,7 +1299,7 @@
   $('saveBtn').addEventListener('click', async () => {
     const fields = collectFields();
     if (!validateFields(fields)) {
-      $('saveMsg').textContent = 'Please fill in all required fields (marked with *).';
+      $('saveMsg').textContent = 'Please fix the highlighted fields before saving.';
       $('saveMsg').className = 'bad';
       return;
     }
@@ -699,12 +1325,7 @@
     $('saveBtn').disabled = true;
 
     try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
+      const data = await jsonp(payload);
       $('saveBtn').textContent = 'Save';
       $('saveBtn').disabled = false;
       if (!data.ok) {
@@ -714,6 +1335,7 @@
       }
       $('saveMsg').textContent = 'Saved successfully.';
       $('saveMsg').className = 'good';
+      if (payload.action === 'add') playScreenFx('add');
       await refreshOrders();
       setTimeout(closePanelFn, 600);
     } catch (err) {
@@ -735,22 +1357,26 @@
     e.preventDefault();
     if (editingRow === null) return;
     $('deleteBtn').classList.add('holding');
-    let progress = 0;
     $('deleteProgress').style.width = '0%';
-    deleteHoldTimer = setInterval(() => {
-      progress += 10;
+    const duration = 300; // ms — same total hold time as before
+    const start = performance.now();
+    function tick(now) {
+      const progress = Math.min(((now - start) / duration) * 100, 100);
       $('deleteProgress').style.width = progress + '%';
       if (progress >= 100) {
-        clearInterval(deleteHoldTimer);
+        deleteHoldRAF = null;
         executeDelete();
+      } else {
+        deleteHoldRAF = requestAnimationFrame(tick);
       }
-    }, 30);
+    }
+    deleteHoldRAF = requestAnimationFrame(tick);
   }
 
   function cancelDeleteHold() {
-    if (deleteHoldTimer) {
-      clearInterval(deleteHoldTimer);
-      deleteHoldTimer = null;
+    if (deleteHoldRAF) {
+      cancelAnimationFrame(deleteHoldRAF);
+      deleteHoldRAF = null;
     }
     $('deleteBtn').classList.remove('holding');
     $('deleteProgress').style.width = '0%';
@@ -759,14 +1385,10 @@
   async function executeDelete() {
     $('deleteText').textContent = 'Deleting…';
     try {
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ pass: PASS, action: 'delete', row: editingRow })
-      });
-      const data = await res.json();
+      const data = await jsonp({ pass: PASS, action: 'delete', row: editingRow });
       if (data.ok) {
-        showToast('Order deleted');
+        playScreenFx('delete');
+        showUndoToast(data.undoToken);
         await refreshOrders();
         closePanelFn();
       } else {
@@ -783,35 +1405,9 @@
     }
   }
 
-  // ============ EXPORT ============
-  $('exportCsvBtn').addEventListener('click', () => exportData('csv'));
-  $('exportXlsBtn').addEventListener('click', () => exportData('xls'));
-
-  function exportData(format) {
-    const rows = applyFilter();
-    if (!rows.length) { showToast('Nothing to export', 'bad'); return; }
-
-    const headers = ['Sr. No.','CUSTOMER','Style No.','Date','Gross Wt','Dia Qty','IN CT','COLOUR STONE','Net Wt','Multiplier','Pg Wt','Gold Amount','Diam Amount','L CHARGES','LABOR AMOUNT','SUB TOTAL','$'];
-    const data = rows.map(r => headers.map(h => {
-      let v = r[h] ?? r[h.replace(' ','')] ?? '';
-      if (typeof v === 'string' && v.includes(',')) return `"${v}"`;
-      return v;
-    }).join(','));
-
-    const csv = [headers.join(','), ...data].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `HET_Orders_${new Date().toISOString().slice(0,10)}.${format}`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${rows.length} orders as ${format.toUpperCase()}`);
-  }
-
   // Keyboard shortcuts
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePanelFn();
+    if (e.key === 'Escape') requestClosePanel();
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
       $('search').focus();
