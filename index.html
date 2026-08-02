@@ -198,6 +198,22 @@
   .badge-het{ background:rgba(184,147,90,0.15); color:var(--gold); }
   .badge-cvd{ background:rgba(107,142,155,0.15); color:var(--accent); }
   .badge-other{ background:rgba(166,156,141,0.15); color:var(--text-dim); }
+  .badge-paid{ background:rgba(122,155,126,0.15); color:var(--good); }
+  .badge-partial{ background:rgba(184,147,90,0.15); color:var(--gold); }
+  .badge-unpaid{ background:rgba(192,112,90,0.15); color:var(--bad); }
+  .badge-notsold{ background:rgba(166,156,141,0.15); color:var(--text-dim); }
+
+  .section-divider{
+    display:flex; align-items:center; gap:10px; margin:22px 0 16px;
+    color:var(--text-dim); font-size:11px; text-transform:uppercase; letter-spacing:0.6px;
+  }
+  .section-divider::after{ content:''; flex:1; height:1px; background:var(--line); }
+  .field textarea{
+    width:100%; padding:10px 12px; border-radius:3px; border:1px solid var(--line);
+    background: var(--surface); color:var(--text); font-size:14px; font-family:'IBM Plex Sans', sans-serif;
+    resize:vertical; min-height:56px; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field textarea:focus{ outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
 
   #overlay{
     display:none; position:fixed; inset:0; background: rgba(10,9,7,0.6);
@@ -234,13 +250,42 @@
   }
   .field input:focus{ outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px var(--gold-glow); }
   .field input.error{ border-color: var(--bad); box-shadow: 0 0 0 3px rgba(192,112,90,0.15); }
+  .field input[readonly]{ opacity:0.6; cursor:not-allowed; }
   .field-error{ color: var(--bad); font-size:11.5px; margin-top:5px; display:none; }
   .field.has-error .field-error{ display:block; }
   .field-row{ display:flex; gap:12px; }
   .field-row .field{ flex:1; }
+  .installments-list{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
+  .installments-empty{ font-size:12.5px; color:var(--text-dim); padding:4px 2px; }
+  .installment-item{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:8px 10px; background:var(--surface); border:1px solid var(--line); border-radius:3px; font-size:13px;
+  }
+  .installment-item .inst-date{ color:var(--text-dim); font-family:'IBM Plex Mono', monospace; font-size:12px; }
+  .installment-item .inst-amount{ font-family:'IBM Plex Mono', monospace; color:var(--gold); font-weight:500; }
+  .installment-item .inst-remove{
+    background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px; line-height:1; padding:2px 6px;
+    transition: color 0.15s;
+  }
+  .installment-item .inst-remove:hover{ color:var(--bad); }
+  .installment-add-row{ margin-bottom:8px; }
+  #err_f_installment{ color:var(--bad); font-size:11.5px; margin-top:2px; min-height:14px; }
+  body.view-only .inst-remove, body.view-only #addInstallmentBtn{ display:none; }
   body.view-only .panel-foot{ display:none; }
   body.view-only tbody tr{ cursor:default; }
-  body.view-only .field input{ opacity:0.65; cursor:not-allowed; }
+  body.view-only .field input, body.view-only .field textarea{ opacity:0.65; cursor:not-allowed; }
+
+  /* ---- Role-based column visibility ----
+     staff (manufacturer, Arpan): INR pricing — hides $ and Memo No.
+     seller (based in USA): USD pricing + carat weight — hides the INR
+     manufacturing weight/amount columns entirely.
+     customer: unchanged, sees the same columns as staff (minus edit rights,
+     handled separately by .view-only above). */
+  .col-ctWt{ display:none; } /* hidden by default; only the seller view shows it */
+  body.role-staff .col-usd, body.role-staff .col-memoNo{ display:none; }
+  body.role-seller .col-grossWt, body.role-seller .col-subTotal, body.role-seller .col-balanceDue{ display:none; }
+  body.role-seller th.col-ctWt, body.role-seller td.col-ctWt{ display:table-cell; }
+  body.role-seller .order-card-grid .col-ctWt{ display:block; }
   .panel-foot{
     padding:18px 24px; border-top:1px solid var(--line); display:flex; gap:10px;
   }
@@ -415,7 +460,7 @@
       <div class="sub">Orders Delivered</div>
     </div>
     <div class="controls">
-      <input id="search" placeholder="Search customer, style, or date…" autocomplete="off">
+      <input id="search" placeholder="Search customer, style, memo, buyer, or date…" autocomplete="off">
       <button class="btn secondary" id="refreshBtn">Refresh</button>
       <button class="btn" id="newOrderBtn">+ New order</button>
     </div>
@@ -435,6 +480,16 @@
         <label>To</label>
         <input type="date" id="filterDateTo">
       </div>
+      <div class="filter-group">
+        <label>Sale Status</label>
+        <select id="filterSaleStatus">
+          <option value="">All items</option>
+          <option value="Not Sold">Not sold</option>
+          <option value="Unpaid">Unpaid</option>
+          <option value="Partial">Partial</option>
+          <option value="Paid">Paid</option>
+        </select>
+      </div>
       <button class="btn secondary small" id="clearFiltersBtn">Clear filters</button>
       <span class="rate-note" id="rateNote"></span>
     </div>
@@ -449,12 +504,13 @@
             <th data-key="customer">Customer</th>
             <th data-key="style">Style No.</th>
             <th data-key="date">Date</th>
-            <th class="num" data-key="netWt">Net Wt</th>
-            <th class="num" data-key="goldAmt">Gold Amt</th>
-            <th class="num" data-key="diamAmt">Diam Amt</th>
-            <th class="num" data-key="laborAmt">Labor</th>
-            <th class="num" data-key="subTotal">Sub Total</th>
-            <th class="num" data-key="usd">$</th>
+            <th class="num col-grossWt" data-key="grossWt">Gross Wt</th>
+            <th class="num col-ctWt">Ct Wt</th>
+            <th class="num col-subTotal" data-key="subTotal">Sub Total</th>
+            <th class="num col-usd" data-key="usd">$</th>
+            <th class="col-memoNo" data-key="memoNo">Memo No.</th>
+            <th data-key="soldTo">Sold To</th>
+            <th data-key="paymentStatus">Status</th>
           </tr>
         </thead>
         <tbody id="tbody">
@@ -508,6 +564,38 @@
     </div>
 
     <p class="computed-note">Formulas: Pg Wt = Net Wt × Multiplier | Gold Amt = Pg Wt × 16000 | Labor = Net Wt × L Charges | $ = Sub Total ÷ 94</p>
+
+    <div class="section-divider">Sale &amp; Payment</div>
+
+    <div class="field">
+      <label>Memo No.</label>
+      <input id="f_memoNo" placeholder="e.g. MEMO-014 (leave blank if sold alone)">
+      <div class="computed-note" id="memoSummary" style="display:none;"></div>
+    </div>
+    <div class="field"><label>Sold To (Buyer)</label><input id="f_soldTo" placeholder="e.g. Priya Shah"></div>
+    <div class="field-row">
+      <div class="field"><label>Sale Price (₹)</label><input id="f_salePrice" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_salePrice"></div></div>
+      <div class="field"><label>Date Sold</label><input id="f_dateSold" type="date"></div>
+    </div>
+    <div class="field">
+      <label>Installments <span id="instScopeLabel"></span></label>
+      <div id="installmentsList" class="installments-list"></div>
+      <div class="field-row installment-add-row">
+        <div class="field"><input id="f_instAmount" type="number" step="1" min="0" placeholder="Amount ₹"></div>
+        <div class="field"><input id="f_instDate" type="date"></div>
+      </div>
+      <button class="btn secondary small" id="addInstallmentBtn" type="button" style="width:100%">+ Add installment</button>
+      <div class="field-error" id="err_f_installment"></div>
+    </div>
+
+    <div class="computed-preview">
+      <h4>Payment Preview</h4>
+      <div class="computed-row" id="row_memoTotal" style="display:none;"><span class="label">Memo Total (all items)</span><span class="value" id="prev_memoTotal">—</span></div>
+      <div class="computed-row"><span class="label">Amount Paid</span><span class="value" id="prev_amountPaid">—</span></div>
+      <div class="computed-row"><span class="label">Balance Due</span><span class="value" id="prev_balanceDue">—</span></div>
+      <div class="computed-row"><span class="label">Payment Status</span><span class="value" id="prev_paymentStatus">—</span></div>
+    </div>
+
     <div id="saveMsg"></div>
   </div>
   <div class="panel-foot">
@@ -528,7 +616,7 @@
 
 <script>
   // ============ CONFIGURE THIS ============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9LYg3NImB1HqtvKHgewoewMIOUc8r-4kWx3leJdp2Eiz3CRgMs7IXjnqz7FG59LqUjQ/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6EY9PbCkjukEltyuAIF9qIh1rVQoYDOin2q18RX2e1vEEvz9wdebkVQVnSYlkpyjR/exec';
   const GOLD_RATE_PER_10G = 16000;
   const USD_RATE = 94;
   // =========================================
@@ -568,6 +656,7 @@
   let sortKey = null;
   let sortDir = 'asc';
   let deleteHoldRAF = null;
+  let currentInstallments = []; // [{date, amount}] for the order currently open in the panel
 
   const $ = (id) => document.getElementById(id);
   $('rateNote').textContent = `Gold: ₹${GOLD_RATE_PER_10G.toLocaleString('en-IN')}/10g · $1 = ₹${USD_RATE} (fixed rates)`;
@@ -609,6 +698,26 @@
   function fmtNum(n, d=3) {
     n = parseFloat(n) || 0;
     return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: d });
+  }
+
+  // 1 gram = 5 carats — used to show the seller a carat weight instead of
+  // the manufacturing gram weight.
+  function gramsToCarats(grams) {
+    return (parseFloat(grams) || 0) * 5;
+  }
+
+  // Looks up a field by name, ignoring case and stray whitespace in the
+  // sheet's actual header text. Used for fields (like the memo column)
+  // where the exact header string on the live sheet might not match what
+  // was assumed in code — this way a small header difference doesn't
+  // silently show as blank data.
+  function getField(row, wantedKey) {
+    if (!row) return undefined;
+    const target = wantedKey.trim().toLowerCase();
+    for (const k in row) {
+      if (k.trim().toLowerCase() === target) return row[k];
+    }
+    return undefined;
   }
 
   // Handles dates whether the backend sends a plain 'yyyy-MM-dd' string
@@ -725,7 +834,99 @@
     $('prev_laborAmt').textContent = fmtMoney(comp.laborAmount);
     $('prev_subTotal').textContent = fmtMoney(comp.subTotal);
     $('prev_usd').textContent = '$' + fmtNum(comp.usd, 2);
+
+    const sale = computeSale(fields);
+    $('prev_amountPaid').textContent = sale.amountPaid > 0 ? fmtMoney(sale.amountPaid) : '—';
+    $('prev_balanceDue').textContent = sale.salePrice === null ? '—' : fmtMoney(sale.balanceDue);
+    $('prev_paymentStatus').textContent = sale.status || '—';
+
+    // Memo grouping: show the other items sharing this memo number, and
+    // switch the preview/labels over to memo-wide totals once there's more
+    // than one item involved.
+    const siblings = getMemoSiblings(fields.memoNo, editingRow);
+    const summaryEl = $('memoSummary');
+    const instLabel = $('instScopeLabel');
+    if (siblings.length) {
+      summaryEl.style.display = '';
+      const names = siblings.map(r => r['Style No.'] || 'item').join(', ');
+      summaryEl.textContent = `Also in this memo: ${names} — ${siblings.length + 1} item(s) total.`;
+      instLabel.textContent = '(applies to the whole memo)';
+      $('row_memoTotal').style.display = '';
+      $('prev_memoTotal').textContent = fmtMoney(sale.memoTotal);
+    } else {
+      summaryEl.style.display = 'none';
+      instLabel.textContent = '';
+      $('row_memoTotal').style.display = 'none';
+    }
   }
+
+  // Finds other orders sharing the same Memo No. (case/whitespace-insensitive),
+  // excluding the row currently open in the panel.
+  function getMemoSiblings(memoNo, excludeRow) {
+    const key = String(memoNo || '').trim().toLowerCase();
+    if (!key) return [];
+    return ORDERS.filter(r => r._row !== excludeRow && String(getField(r, 'Memo No.') ?? '').trim().toLowerCase() === key);
+  }
+
+  // Mirrors the backend's Amount Paid / Balance Due / Payment Status logic,
+  // purely for the live preview — the sheet is still the source of truth
+  // once saved. Amount Paid is always the sum of the installment list. When
+  // this item shares a Memo No. with others, the balance/status are judged
+  // against the combined memo total rather than just this item's price.
+  function computeSale(fields) {
+    const paid = currentInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+    const priceStr = String(fields.salePrice ?? '').trim();
+    const siblings = getMemoSiblings(fields.memoNo, editingRow);
+    const siblingsTotal = siblings.reduce((s, r) => s + (parseFloat(r['Sale Price']) || 0), 0);
+
+    if (priceStr === '' && !siblings.length) return { salePrice: null, amountPaid: paid, balanceDue: 0, status: '', memoTotal: 0 };
+    const itemPrice = parseFloat(priceStr) || 0;
+    const memoTotal = itemPrice + siblingsTotal;
+    const balanceDue = memoTotal - paid;
+    const status = paid <= 0 ? 'Unpaid' : (paid >= memoTotal ? 'Paid' : 'Partial');
+    return { salePrice: priceStr === '' ? null : itemPrice, amountPaid: paid, balanceDue, status, memoTotal };
+  }
+
+  // ============ INSTALLMENTS ============
+  function renderInstallments() {
+    const list = $('installmentsList');
+    if (!currentInstallments.length) {
+      list.innerHTML = `<div class="installments-empty">No payments recorded yet.</div>`;
+    } else {
+      list.innerHTML = currentInstallments.map((inst, i) => `
+        <div class="installment-item">
+          <span class="inst-date">${inst.date ? fmtDate(inst.date) : '—'}</span>
+          <span class="inst-amount">${fmtMoney(inst.amount)}</span>
+          <button type="button" class="inst-remove" data-idx="${i}" title="Remove this payment">&times;</button>
+        </div>
+      `).join('');
+      list.querySelectorAll('.inst-remove').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentInstallments.splice(parseInt(btn.dataset.idx, 10), 1);
+          formDirty = true;
+          renderInstallments();
+        });
+      });
+    }
+    updatePreview();
+  }
+
+  $('addInstallmentBtn').addEventListener('click', () => {
+    const amtStr = $('f_instAmount').value;
+    const amt = parseFloat(amtStr);
+    if (!amtStr || isNaN(amt) || amt <= 0) {
+      $('err_f_installment').textContent = 'Enter a valid amount to add a payment.';
+      return;
+    }
+    $('err_f_installment').textContent = '';
+    const date = $('f_instDate').value || new Date().toISOString().split('T')[0];
+    currentInstallments.push({ date, amount: amt });
+    currentInstallments.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    $('f_instAmount').value = '';
+    $('f_instDate').value = '';
+    formDirty = true;
+    renderInstallments();
+  });
 
   // ============ LOGIN ============
   $('loginBtn').addEventListener('click', login);
@@ -767,13 +968,22 @@
     }
   }
 
-  // Customers get view-only access: no adding, editing, or deleting.
-  // The backend also enforces this — this just keeps the UI honest.
+  // Three roles: 'staff' (manufacturer — full access), 'seller' (your
+  // brother — can view everything, but only edit Sold To / Sale Price /
+  // Date Sold / payments), 'customer' (view-only). The backend enforces
+  // all of this independently — this just keeps the UI honest.
   function applyRoleRestrictions() {
     const isStaff = ROLE === 'staff';
+    const canEditSale = ROLE === 'staff' || ROLE === 'seller';
     const newOrderBtn = $('newOrderBtn');
     if (newOrderBtn) newOrderBtn.style.display = isStaff ? '' : 'none';
-    document.body.classList.toggle('view-only', !isStaff);
+    // 'view-only' hides the Save button and dims controls entirely — only
+    // applies to pure viewers (customers), since sellers can still save.
+    document.body.classList.toggle('view-only', !canEditSale);
+    // role-staff / role-seller / role-customer drives which columns show
+    // (INR manufacturing figures for staff, USD + carat weight for seller).
+    document.body.classList.remove('role-staff', 'role-seller', 'role-customer');
+    document.body.classList.add('role-' + ROLE);
   }
 
   // ============ SKELETON LOADING STATE ============
@@ -788,11 +998,11 @@
         <td><span class="skel" style="width:90px">•</span></td>
         <td><span class="skel" style="width:80px">•</span></td>
         <td class="num"><span class="skel" style="width:50px">•</span></td>
-        <td class="num"><span class="skel" style="width:70px">•</span></td>
-        <td class="num"><span class="skel" style="width:70px">•</span></td>
-        <td class="num"><span class="skel" style="width:60px">•</span></td>
         <td class="num"><span class="skel" style="width:80px">•</span></td>
         <td class="num"><span class="skel" style="width:50px">•</span></td>
+        <td><span class="skel" style="width:60px">•</span></td>
+        <td><span class="skel" style="width:70px">•</span></td>
+        <td><span class="skel" style="width:60px">•</span></td>
       </tr>
     `).join('');
 
@@ -873,6 +1083,10 @@
     const totalNetWt = ORDERS.reduce((s, r) => s + (parseFloat(r['Net Wt'])||0), 0);
     const totalDiaCt = ORDERS.reduce((s, r) => s + (parseFloat(r['IN CT'])||0), 0);
 
+    const soldRows = ORDERS.filter(r => String(r['Sale Price'] ?? '').trim() !== '');
+    const unpaidOrPartial = soldRows.filter(r => (parseFloat(r['Balance Due']) || 0) > 0);
+    const totalOutstanding = unpaidOrPartial.reduce((s, r) => s + (parseFloat(r['Balance Due']) || 0), 0);
+
     const kpis = [
       { key:'orders', label: 'Total Orders', raw: totalOrders, fmt: v => Math.round(v).toLocaleString('en-IN'), sub: 'across all customers' },
       { key:'revenue', label: 'Sub Total', raw: totalRevenue, fmt: v => fmtMoney(v), sub: '₹' + fmtNum(totalRevenue/100000, 2) + ' Lakhs' },
@@ -880,6 +1094,8 @@
       { key:'diam', label: 'Diamond Amount', raw: totalDiam, fmt: v => fmtMoney(v), sub: fmtNum((totalDiam/totalRevenue)*100, 1) + '% of revenue' },
       { key:'netwt', label: 'Net Weight', raw: totalNetWt, fmt: v => fmtNum(v, 2) + ' g', sub: 'total gold weight' },
       { key:'diact', label: 'Diamonds', raw: totalDiaCt, fmt: v => fmtNum(v, 2) + ' ct', sub: 'total carat weight' },
+      { key:'sold', label: 'Pieces Sold', raw: soldRows.length, fmt: v => Math.round(v).toLocaleString('en-IN'), sub: `of ${totalOrders} total pieces` },
+      { key:'outstanding', label: 'Outstanding Balance', raw: totalOutstanding, fmt: v => fmtMoney(v), sub: `across ${unpaidOrPartial.length} unpaid/partial` },
     ];
 
     const grid = $('kpiGrid');
@@ -909,6 +1125,14 @@
     return '<span class="badge badge-other">' + (customer || '—') + '</span>';
   }
 
+  function getPaymentBadge(row) {
+    const price = String(row['Sale Price'] ?? '').trim();
+    if (price === '') return '<span class="badge badge-notsold">Not sold</span>';
+    const status = String(row['Payment Status'] ?? '').trim() || 'Unpaid';
+    const cls = status === 'Paid' ? 'badge-paid' : status === 'Partial' ? 'badge-partial' : 'badge-unpaid';
+    return `<span class="badge ${cls}">${status}</span>`;
+  }
+
   function renderTable(rows) {
     const tbody = $('tbody');
     if (!rows.length) {
@@ -922,12 +1146,13 @@
         <td class="customer-cell">${getCustomerBadge(r['CUSTOMER '] ?? r['CUSTOMER'])}</td>
         <td><span class="style-tag">${r['Style No.'] ?? ''}</span></td>
         <td>${fmtDate(r['Date'])}</td>
-        <td class="num">${fmtNum(r['Net Wt'], 3)}</td>
-        <td class="num">${fmtMoney(r['Gold Amount'])}</td>
-        <td class="num">${fmtMoney(r['Diam Amount'])}</td>
-        <td class="num">${fmtMoney(r['LABOR AMOUNT'])}</td>
-        <td class="num" style="font-weight:600">${fmtMoney(r['SUB TOTAL'])}</td>
-        <td class="num">${fmtNum(r['$'], 2)}</td>
+        <td class="num col-grossWt">${fmtNum(r['Gross Wt'], 3)}</td>
+        <td class="num col-ctWt">${fmtNum(gramsToCarats(r['Gross Wt']), 3)}</td>
+        <td class="num col-subTotal" style="font-weight:600">${fmtMoney(r['SUB TOTAL'])}</td>
+        <td class="num col-usd">${fmtNum(r['$'], 2)}</td>
+        <td class="col-memoNo">${getField(r, 'Memo No.') || '—'}</td>
+        <td>${r['Sold To'] ?? '—'}</td>
+        <td>${getPaymentBadge(r)}</td>
       </tr>
     `).join('');
 
@@ -960,16 +1185,18 @@
             </div>
             <span class="head-sub">${getCustomerBadge(r['CUSTOMER '] ?? r['CUSTOMER'])} · ${fmtDate(r['Date'])}</span>
           </div>
-          <div class="head-total">${fmtMoney(r['SUB TOTAL'])}</div>
+          <div class="head-total">${ROLE === 'seller' ? '$' + fmtNum(r['$'], 2) : fmtMoney(r['SUB TOTAL'])}</div>
           <svg class="order-card-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
         </div>
         <div class="order-card-body">
           <div class="order-card-grid">
-            <div class="field-item"><div class="k">Net Wt</div><div class="v">${fmtNum(r['Net Wt'], 3)}</div></div>
-            <div class="field-item"><div class="k">Gold Amt</div><div class="v">${fmtMoney(r['Gold Amount'])}</div></div>
-            <div class="field-item"><div class="k">Diam Amt</div><div class="v">${fmtMoney(r['Diam Amount'])}</div></div>
-            <div class="field-item"><div class="k">Labor</div><div class="v">${fmtMoney(r['LABOR AMOUNT'])}</div></div>
-            <div class="field-item"><div class="k">$</div><div class="v">${fmtNum(r['$'], 2)}</div></div>
+            <div class="field-item col-grossWt"><div class="k">Gross Wt</div><div class="v">${fmtNum(r['Gross Wt'], 3)}</div></div>
+            <div class="field-item col-ctWt"><div class="k">Ct Wt</div><div class="v">${fmtNum(gramsToCarats(r['Gross Wt']), 3)}</div></div>
+            <div class="field-item col-usd"><div class="k">$</div><div class="v">${fmtNum(r['$'], 2)}</div></div>
+            <div class="field-item col-memoNo"><div class="k">Memo No.</div><div class="v">${getField(r, 'Memo No.') || '—'}</div></div>
+            <div class="field-item"><div class="k">Sold To</div><div class="v">${r['Sold To'] || '—'}</div></div>
+            <div class="field-item"><div class="k">Status</div><div class="v">${getPaymentBadge(r)}</div></div>
+            <div class="field-item col-balanceDue"><div class="k">Balance Due</div><div class="v">${String(r['Sale Price'] ?? '').trim() === '' ? '—' : fmtMoney(r['Balance Due'])}</div></div>
           </div>
         </div>
       </div>
@@ -1034,8 +1261,8 @@
     if (!sortKey) return rows;
     const map = {
       sr: 'Sr. No.', customer: 'CUSTOMER ', style: 'Style No.', date: 'Date',
-      netWt: 'Net Wt', goldAmt: 'Gold Amount', diamAmt: 'Diam Amount',
-      laborAmt: 'LABOR AMOUNT', subTotal: 'SUB TOTAL', usd: '$'
+      grossWt: 'Gross Wt', subTotal: 'SUB TOTAL', usd: '$',
+      memoNo: 'Memo No.', soldTo: 'Sold To', paymentStatus: 'Payment Status'
     };
     const col = map[sortKey];
     return [...rows].sort((a, b) => {
@@ -1075,7 +1302,9 @@
       filtered = filtered.filter(r =>
         String(r['CUSTOMER '] ?? r['CUSTOMER'] ?? '').toLowerCase().includes(q) ||
         String(r['Style No.'] ?? '').toLowerCase().includes(q) ||
-        String(r['Date'] ?? '').includes(q)
+        String(r['Date'] ?? '').includes(q) ||
+        String(getField(r, 'Memo No.') ?? '').toLowerCase().includes(q) ||
+        String(r['Sold To'] ?? '').toLowerCase().includes(q)
       );
     }
     if (customer) {
@@ -1087,6 +1316,15 @@
     if (dateTo) {
       filtered = filtered.filter(r => String(r['Date'] ?? '').split('T')[0] <= dateTo);
     }
+    const saleStatus = $('filterSaleStatus').value;
+    if (saleStatus) {
+      filtered = filtered.filter(r => {
+        const soldFlag = String(r['Sale Price'] ?? '').trim() !== '';
+        if (saleStatus === 'Not Sold') return !soldFlag;
+        if (!soldFlag) return false;
+        return (String(r['Payment Status'] ?? '').trim() || 'Unpaid') === saleStatus;
+      });
+    }
     return sortRows(filtered);
   }
   let searchDebounceTimer = null;
@@ -1094,7 +1332,7 @@
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => { currentPage = 1; renderResults(applyFilter()); }, 150);
   });
-  ['filterCustomer','filterDateFrom','filterDateTo'].forEach(id => {
+  ['filterCustomer','filterDateFrom','filterDateTo','filterSaleStatus'].forEach(id => {
     $(id).addEventListener('change', () => { currentPage = 1; renderResults(applyFilter()); });
   });
   $('clearFiltersBtn').addEventListener('click', () => {
@@ -1102,6 +1340,7 @@
     $('filterCustomer').value = '';
     $('filterDateFrom').value = '';
     $('filterDateTo').value = '';
+    $('filterSaleStatus').value = '';
     currentPage = 1;
     renderResults(applyFilter());
   });
@@ -1161,7 +1400,7 @@
   // their work. Only wired to the user-facing close controls — internal
   // calls to closePanelFn() after a successful save/delete skip this.
   let formDirty = false;
-  document.querySelectorAll('#panel .field input').forEach(inp => {
+  document.querySelectorAll('#panel .field input, #panel .field textarea').forEach(inp => {
     inp.addEventListener('input', () => { formDirty = true; });
   });
   function requestClosePanel() {
@@ -1178,7 +1417,9 @@
     if (!order) return;
     editingRow = rowNum;
     const isStaff = ROLE === 'staff';
-    $('panelTitle').textContent = `${isStaff ? 'Edit' : 'View'} — ${order['Style No.'] ?? ''}`;
+    const isSeller = ROLE === 'seller';
+    const canEditSale = isStaff || isSeller;
+    $('panelTitle').textContent = `${canEditSale ? 'Edit' : 'View'} — ${order['Style No.'] ?? ''}`;
     $('f_customer').value = order['CUSTOMER '] ?? order['CUSTOMER'] ?? '';
     $('f_style').value = order['Style No.'] ?? '';
     $('f_date').value = order['Date'] ? String(order['Date']).split('T')[0] : '';
@@ -1190,7 +1431,53 @@
     $('f_multiplier').value = order['Multiplier'] ?? '0.595';
     $('f_diamAmount').value = order['Diam Amount'] ?? '';
     $('f_lCharges').value = order['L CHARGES'] ?? '';
-    document.querySelectorAll('#panel .field input').forEach(inp => inp.readOnly = !isStaff);
+    $('f_soldTo').value = order['Sold To'] ?? '';
+    $('f_salePrice').value = order['Sale Price'] ?? '';
+    $('f_dateSold').value = order['Date Sold'] ? String(order['Date Sold']).split('T')[0] : '';
+    $('f_memoNo').value = getField(order, 'Memo No.') ?? '';
+
+    // Load installments from the structured Payment Log JSON. If the sheet
+    // has an older freeform note there instead (or nothing), fall back to
+    // seeding one installment from the existing Amount Paid total, so a
+    // previously-recorded payment isn't lost the first time this order is
+    // reopened under the new installment tracking.
+    let loadedInstallments = [];
+    const rawLog = order['Payment Log'];
+    if (rawLog) {
+      try {
+        const parsed = JSON.parse(rawLog);
+        if (Array.isArray(parsed)) {
+          loadedInstallments = parsed
+            .filter(x => x && !isNaN(parseFloat(x.amount)))
+            .map(x => ({ date: x.date || '', amount: parseFloat(x.amount) }));
+        }
+      } catch (e) { /* legacy freeform note — ignored, handled by the fallback below */ }
+    }
+    if (!loadedInstallments.length) {
+      const existingPaid = parseFloat(order['Amount Paid']);
+      if (existingPaid > 0) {
+        loadedInstallments = [{ date: order['Date Sold'] ? String(order['Date Sold']).split('T')[0] : '', amount: existingPaid }];
+      }
+    }
+    currentInstallments = loadedInstallments;
+    $('f_instAmount').value = '';
+    $('f_instDate').value = '';
+    $('err_f_installment').textContent = '';
+    renderInstallments();
+
+    currentInstallments = loadedInstallments;
+    $('f_instAmount').value = '';
+    $('f_instDate').value = '';
+    $('err_f_installment').textContent = '';
+    renderInstallments();
+
+    // Manufacturing details: only the manufacturer (staff) can edit these.
+    const manufacturingIds = ['f_customer','f_style','f_date','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges'];
+    manufacturingIds.forEach(id => { $(id).readOnly = !isStaff; });
+    // Sale & payment details: the manufacturer AND the seller can edit these.
+    const saleIds = ['f_memoNo','f_soldTo','f_salePrice','f_dateSold','f_instAmount','f_instDate'];
+    saleIds.forEach(id => { $(id).readOnly = !canEditSale; });
+    $('addInstallmentBtn').style.display = canEditSale ? '' : 'none';
     $('deleteBtn').style.display = isStaff ? 'inline-block' : 'none';
     $('deleteText').textContent = 'Delete';
     $('deleteBtn').classList.remove('holding');
@@ -1202,15 +1489,19 @@
   $('newOrderBtn').addEventListener('click', () => {
     editingRow = null;
     $('panelTitle').textContent = 'New order';
-    ['f_customer','f_style','f_date','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges']
+    ['f_customer','f_style','f_date','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges',
+     'f_memoNo','f_soldTo','f_salePrice','f_dateSold','f_instAmount','f_instDate']
       .forEach(id => $(id).value = '');
     $('f_multiplier').value = '0.595';
+    currentInstallments = [];
+    $('err_f_installment').textContent = '';
+    renderInstallments();
     $('deleteBtn').style.display = 'none';
     updatePreview();
     openPanel();
   });
 
-  ['f_netWt','f_multiplier','f_diamAmount','f_lCharges'].forEach(id => {
+  ['f_netWt','f_multiplier','f_diamAmount','f_lCharges','f_salePrice','f_memoNo'].forEach(id => {
     $(id).addEventListener('input', updatePreview);
   });
 
@@ -1227,6 +1518,11 @@
       multiplier: $('f_multiplier').value,
       diamAmount: $('f_diamAmount').value,
       lCharges: $('f_lCharges').value,
+      soldTo: $('f_soldTo').value.trim(),
+      salePrice: $('f_salePrice').value,
+      dateSold: $('f_dateSold').value,
+      paymentLog: JSON.stringify(currentInstallments),
+      memoNo: $('f_memoNo').value.trim(),
     };
   }
 
@@ -1245,13 +1541,14 @@
   }
 
   function clearAllFieldErrors() {
-    ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges']
+    ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges','f_salePrice']
       .forEach(id => setFieldError(id, ''));
+    $('err_f_installment').textContent = '';
   }
 
   // Live-clear a field's error as soon as the person edits it, rather than
   // making them hit Save again just to see if it's fixed.
-  ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges']
+  ['f_customer','f_style','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges','f_salePrice']
     .forEach(id => $(id).addEventListener('input', () => setFieldError(id, '')));
 
   function validateFields(fields) {
@@ -1290,6 +1587,25 @@
     if (String(fields.multiplier).trim() !== '') {
       const m = parseFloat(fields.multiplier);
       if (isNaN(m) || m <= 0) fail('f_multiplier', 'Multiplier must be a positive number.');
+    }
+
+    // Sale & payment fields are optional (a piece may not be sold yet), but
+    // if provided, they need to hold together.
+    const priceStr = String(fields.salePrice).trim();
+    if (priceStr !== '') {
+      const price = parseFloat(priceStr);
+      if (isNaN(price) || price < 0) fail('f_salePrice', 'Sale Price must be a positive number.');
+    }
+    const totalPaid = currentInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+    const siblings = getMemoSiblings(fields.memoNo, editingRow);
+    const memoTotal = (priceStr === '' ? 0 : parseFloat(priceStr) || 0) + siblings.reduce((s, r) => s + (parseFloat(r['Sale Price']) || 0), 0);
+    if (totalPaid > 0 && priceStr === '' && !siblings.length) {
+      fail('f_salePrice', 'Enter a Sale Price before recording payments.');
+    } else if ((priceStr !== '' || siblings.length) && totalPaid > memoTotal) {
+      $('err_f_installment').textContent = siblings.length
+        ? "Total payments can't exceed the memo's combined total."
+        : "Total payments can't exceed the Sale Price.";
+      valid = false;
     }
 
     return valid;
