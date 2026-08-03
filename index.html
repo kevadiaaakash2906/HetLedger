@@ -642,7 +642,7 @@
 
 <script>
   // ============ CONFIGURE THIS ============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDa2ZxtSG8qBwOmoAhZsojzRLaJjyiDQHhhCyBPqGoIZJcRfnIFpGSPP7tI8c_MpNa/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6EY9PbCkjukEltyuAIF9qIh1rVQoYDOin2q18RX2e1vEEvz9wdebkVQVnSYlkpyjR/exec';
   const GOLD_RATE_PER_10G = 16000;
   const USD_RATE = 94;
   // =========================================
@@ -1014,6 +1014,24 @@
     // (INR manufacturing figures for staff, USD + carat weight for seller).
     document.body.classList.remove('role-staff', 'role-seller', 'role-customer');
     document.body.classList.add('role-' + ROLE);
+    equalizeColumnWidths();
+  }
+
+  // visibility:collapse hides a column, but doesn't reliably make the
+  // *remaining* columns stretch to fill the freed space in every browser —
+  // some just leave a blank gap where the hidden columns used to be. This
+  // computes an exact equal share for whichever columns are actually
+  // visible for the current role, so the table always fills the full
+  // width no matter how many columns that role happens to see.
+  function equalizeColumnWidths() {
+    const cols = document.querySelectorAll('.table-wrap col');
+    if (!cols.length) return;
+    const visibleCols = Array.from(cols).filter(col => getComputedStyle(col).visibility !== 'collapse');
+    if (!visibleCols.length) return;
+    const widthPct = (100 / visibleCols.length) + '%';
+    cols.forEach(col => {
+      col.style.width = getComputedStyle(col).visibility !== 'collapse' ? widthPct : '0%';
+    });
   }
 
   // ============ SKELETON LOADING STATE ============
