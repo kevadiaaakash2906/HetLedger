@@ -533,7 +533,7 @@
             <th data-key="date">Date</th>
             <th class="num col-grossWt" data-key="grossWt">Gross Wt</th>
             <th class="num col-ctWt" data-key="carat">Carat</th>
-            <th class="num col-diaCt" data-key="inCt">Diamond Carat</th>
+            <th class="num col-diaCt" data-key="inCt">diamond ct</th>
             <th class="num col-subTotal" data-key="subTotal">Sub Total</th>
             <th class="num col-usd" data-key="usd">$</th>
             <th class="col-memoNo" data-key="memoNo">Memo No.</th>
@@ -1267,7 +1267,7 @@
           <div class="order-card-grid">
             <div class="field-item col-grossWt"><div class="k">Gross Wt</div><div class="v">${fmtNum(r['Gross Wt'], 3)}</div></div>
             <div class="field-item col-ctWt"><div class="k">Carat</div><div class="v">${fmtNum(gramsToCarats(r['Gross Wt']), 3)}</div></div>
-            <div class="field-item col-diaCt"><div class="k">Diamond Carat</div><div class="v">${fmtNum(r['IN CT'], 2)}</div></div>
+            <div class="field-item col-diaCt"><div class="k">diamond ct</div><div class="v">${fmtNum(r['IN CT'], 2)}</div></div>
             <div class="field-item col-usd"><div class="k">$</div><div class="v">${fmtNum(r['$'], 2)}</div></div>
             <div class="field-item col-memoNo"><div class="k">Memo No.</div><div class="v">${getField(r, 'Memo No.') || '—'}</div></div>
             <div class="field-item"><div class="k">Sold To</div><div class="v">${r['Sold To'] || '—'}</div></div>
