@@ -282,8 +282,8 @@
 
   /* ---- Role-based column visibility ----
      staff (manufacturer, Arpan): INR pricing — hides $ and Memo No.
-     seller (based in USA): USD pricing + carat weight — hides the INR
-     manufacturing weight/amount columns entirely.
+     seller (based in USA): USD pricing + Gross Wt in grams + real Carat
+     (from the IN CT column) — hides the INR Sub Total column.
      customer: unchanged, sees the same columns as staff (minus edit rights,
      handled separately by .view-only above).
      Hiding is done via visibility:collapse on the <col> element (not
@@ -291,7 +291,7 @@
      freed space and stay evenly spaced, instead of leaving a gap. */
   col.col-ctWt, col.col-salePrice{ visibility:collapse; } /* hidden by default */
   body.role-staff col.col-usd, body.role-staff col.col-memoNo{ visibility:collapse; }
-  body.role-seller col.col-grossWt, body.role-seller col.col-subTotal{ visibility:collapse; }
+  body.role-seller col.col-subTotal{ visibility:collapse; }
   body.role-seller col.col-ctWt, body.role-seller col.col-salePrice{ visibility:visible; }
   body.role-staff col.col-salePrice{ visibility:visible; }
   body.role-seller .col-balanceDue{ display:none; } /* mobile card field, unrelated to <col> */
@@ -529,8 +529,8 @@
             <th data-key="customer">Customer</th>
             <th data-key="style">Style No.</th>
             <th data-key="date">Date</th>
-            <th class="num col-grossWt" data-key="grossWt">Gross Wt</th>
-            <th class="num col-ctWt">Ct Wt</th>
+            <th class="num col-grossWt" data-key="grossWt">Gross Wt (g)</th>
+            <th class="num col-ctWt" data-key="carat">Carat</th>
             <th class="num col-subTotal" data-key="subTotal">Sub Total</th>
             <th class="num col-usd" data-key="usd">$</th>
             <th class="col-memoNo" data-key="memoNo">Memo No.</th>
@@ -721,19 +721,16 @@
     return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   }
     function fmtUSD(n) {
-    n = parseFloat(n) || 0;
+    // Sale-side figures (Sale Price, Balance Due, Amount Paid, Memo Total)
+    // are entered/stored in INR — convert at the fixed rate before showing
+    // the $ sign, instead of just relabeling the rupee number as dollars.
+    n = (parseFloat(n) || 0) / USD_RATE;
     return '$' + n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
   }
 
   function fmtNum(n, d=3) {
     n = parseFloat(n) || 0;
     return n.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: d });
-  }
-
-  // 1 gram = 5 carats — used to show the seller a carat weight instead of
-  // the manufacturing gram weight.
-  function gramsToCarats(grams) {
-    return (parseFloat(grams) || 0) * 5;
   }
 
   // Looks up a field by name, ignoring case and stray whitespace in the
@@ -866,8 +863,8 @@
     $('prev_usd').textContent = '$' + fmtNum(comp.usd, 2);
 
     const sale = computeSale(fields);
-    $('prev_amountPaid').textContent = sale.amountPaid > 0 ? fmtMoney(sale.amountPaid) : '—';
-    $('prev_balanceDue').textContent = sale.salePrice === null ? '—' : fmtMoney(sale.balanceDue);
+    $('prev_amountPaid').textContent = sale.amountPaid > 0 ? fmtUSD(sale.amountPaid) : '—';
+    $('prev_balanceDue').textContent = sale.salePrice === null ? '—' : fmtUSD(sale.balanceDue);
     $('prev_paymentStatus').textContent = sale.status || '—';
 
     // Memo grouping: show the other items sharing this memo number, and
@@ -882,7 +879,7 @@
       summaryEl.textContent = `Also in this memo: ${names} — ${siblings.length + 1} item(s) total.`;
       instLabel.textContent = '(applies to the whole memo)';
       $('row_memoTotal').style.display = '';
-      $('prev_memoTotal').textContent = fmtMoney(sale.memoTotal);
+      $('prev_memoTotal').textContent = fmtUSD(sale.memoTotal);
     } else {
       summaryEl.style.display = 'none';
       instLabel.textContent = '';
@@ -1213,7 +1210,7 @@
         <td><span class="style-tag">${r['Style No.'] ?? ''}</span></td>
         <td>${fmtDate(r['Date'])}</td>
         <td class="num col-grossWt">${fmtNum(r['Gross Wt'], 3)}</td>
-        <td class="num col-ctWt">${fmtNum(gramsToCarats(r['Gross Wt']), 3)}</td>
+        <td class="num col-ctWt">${fmtNum(r['IN CT'], 2)}</td>
         <td class="num col-subTotal" style="font-weight:600">${fmtMoney(r['SUB TOTAL'])}</td>
         <td class="num col-usd">${fmtNum(r['$'], 2)}</td>
         <td class="col-memoNo">${getField(r, 'Memo No.') || '—'}</td>
@@ -1257,8 +1254,8 @@
         </div>
         <div class="order-card-body">
           <div class="order-card-grid">
-            <div class="field-item col-grossWt"><div class="k">Gross Wt</div><div class="v">${fmtNum(r['Gross Wt'], 3)}</div></div>
-            <div class="field-item col-ctWt"><div class="k">Ct Wt</div><div class="v">${fmtNum(gramsToCarats(r['Gross Wt']), 3)}</div></div>
+            <div class="field-item col-grossWt"><div class="k">Gross Wt (g)</div><div class="v">${fmtNum(r['Gross Wt'], 3)}</div></div>
+            <div class="field-item col-ctWt"><div class="k">Carat</div><div class="v">${fmtNum(r['IN CT'], 2)}</div></div>
             <div class="field-item col-usd"><div class="k">$</div><div class="v">${fmtNum(r['$'], 2)}</div></div>
             <div class="field-item col-memoNo"><div class="k">Memo No.</div><div class="v">${getField(r, 'Memo No.') || '—'}</div></div>
             <div class="field-item"><div class="k">Sold To</div><div class="v">${r['Sold To'] || '—'}</div></div>
@@ -1329,7 +1326,7 @@
     if (!sortKey) return rows;
         const map = {
       sr: 'Sr. No.', customer: 'CUSTOMER ', style: 'Style No.', date: 'Date',
-      grossWt: 'Gross Wt', subTotal: 'SUB TOTAL', usd: '$',
+      grossWt: 'Gross Wt', carat: 'IN CT', subTotal: 'SUB TOTAL', usd: '$',
       memoNo: 'Memo No.', soldTo: 'Sold To', salePrice: 'Sale Price', paymentStatus: 'Payment Status'
     };
     const col = map[sortKey];
