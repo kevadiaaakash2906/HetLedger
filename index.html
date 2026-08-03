@@ -154,11 +154,13 @@
   .kpi-sub{ font-size:11.5px; color:var(--text-dim); margin-top:4px; }
 
   .table-wrap{ border:1px solid var(--line); border-radius:4px; overflow:visible; }
-  table{ width:100%; border-collapse:separate; border-spacing:0; font-size:13px; }
+  table{ width:100%; table-layout:fixed; border-collapse:separate; border-spacing:0; font-size:13px; }
+  col{ width: 8.3333%; } /* 12 columns sharing the table equally by default */
   thead th{
     text-align:left; padding:12px 14px; background: var(--surface);
     color: var(--text-dim); font-weight:500; font-size:11px; text-transform:uppercase;
-    letter-spacing:0.6px; border-bottom:1px solid var(--line); white-space:nowrap;
+    letter-spacing:0.6px; border-bottom:1px solid var(--line);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     cursor:pointer; user-select:none; transition: color 0.15s, box-shadow 0.2s ease;
     position: sticky; top: var(--header-h); z-index: 5;
     box-shadow: 0 1px 0 var(--line);
@@ -169,7 +171,10 @@
   thead th:hover{ color: var(--gold); }
   thead th.sort-asc::after{ content:' ▲'; color:var(--gold); font-size:9px; }
   thead th.sort-desc::after{ content:' ▼'; color:var(--gold); font-size:9px; }
-  tbody td{ padding:11px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  tbody td{
+    padding:11px 14px; border-bottom:1px solid var(--line);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
   tbody tr{ cursor:pointer; transition: background 0.12s; }
   tbody tr:hover{ background: var(--surface); }
   tbody tr:last-child td{ border-bottom:none; }
@@ -280,15 +285,18 @@
      seller (based in USA): USD pricing + carat weight — hides the INR
      manufacturing weight/amount columns entirely.
      customer: unchanged, sees the same columns as staff (minus edit rights,
-     handled separately by .view-only above). */
-  .col-ctWt{ display:none; } /* hidden by default; only the seller view shows it */
-  body.role-staff .col-usd, body.role-staff .col-memoNo{ display:none; }
-  body.role-seller .col-grossWt, body.role-seller .col-subTotal, body.role-seller .col-balanceDue{ display:none; }
-  .col-salePrice{ display:none; }
-  body.role-seller th.col-salePrice, body.role-seller td.col-salePrice,
-  body.role-staff th.col-salePrice, body.role-staff td.col-salePrice{ display:table-cell; }
-  body.role-seller th.col-ctWt, body.role-seller td.col-ctWt{ display:table-cell; }
+     handled separately by .view-only above).
+     Hiding is done via visibility:collapse on the <col> element (not
+     display:none on cells) so the remaining columns stretch to fill the
+     freed space and stay evenly spaced, instead of leaving a gap. */
+  col.col-ctWt, col.col-salePrice{ visibility:collapse; } /* hidden by default */
+  body.role-staff col.col-usd, body.role-staff col.col-memoNo{ visibility:collapse; }
+  body.role-seller col.col-grossWt, body.role-seller col.col-subTotal{ visibility:collapse; }
+  body.role-seller col.col-ctWt, body.role-seller col.col-salePrice{ visibility:visible; }
+  body.role-staff col.col-salePrice{ visibility:visible; }
+  body.role-seller .col-balanceDue{ display:none; } /* mobile card field, unrelated to <col> */
   body.role-seller .order-card-grid .col-ctWt{ display:block; }
+
   .panel-foot{
     padding:18px 24px; border-top:1px solid var(--line); display:flex; gap:10px;
   }
@@ -501,6 +509,20 @@
 
     <div class="table-wrap">
       <table>
+        <colgroup>
+          <col class="col-sr">
+          <col class="col-customer">
+          <col class="col-style">
+          <col class="col-date">
+          <col class="col-grossWt">
+          <col class="col-ctWt">
+          <col class="col-subTotal">
+          <col class="col-usd">
+          <col class="col-memoNo">
+          <col class="col-soldTo">
+          <col class="col-salePrice">
+          <col class="col-paymentStatus">
+        </colgroup>
         <thead>
           <tr>
             <th class="num" data-key="sr">Sr.</th>
@@ -512,7 +534,8 @@
             <th class="num col-subTotal" data-key="subTotal">Sub Total</th>
             <th class="num col-usd" data-key="usd">$</th>
             <th class="col-memoNo" data-key="memoNo">Memo No.</th>
-            <th data-key="soldTo">Sold To</th>             <th class="num col-salePrice" data-key="salePrice">Sale Price</th>
+            <th data-key="soldTo">Sold To</th>
+            <th class="num col-salePrice" data-key="salePrice">Sale Price</th>
             <th data-key="paymentStatus">Status</th>
           </tr>
         </thead>
@@ -619,7 +642,7 @@
 
 <script>
   // ============ CONFIGURE THIS ============
-  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6EY9PbCkjukEltyuAIF9qIh1rVQoYDOin2q18RX2e1vEEvz9wdebkVQVnSYlkpyjR/exec';
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDa2ZxtSG8qBwOmoAhZsojzRLaJjyiDQHhhCyBPqGoIZJcRfnIFpGSPP7tI8c_MpNa/exec';
   const GOLD_RATE_PER_10G = 16000;
   const USD_RATE = 94;
   // =========================================
@@ -1091,8 +1114,26 @@
     const totalDiaCt = ORDERS.reduce((s, r) => s + (parseFloat(r['IN CT'])||0), 0);
 
     const soldRows = ORDERS.filter(r => String(r['Sale Price'] ?? '').trim() !== '');
-    const unpaidOrPartial = soldRows.filter(r => (parseFloat(r['Balance Due']) || 0) > 0);
-    const totalOutstanding = unpaidOrPartial.reduce((s, r) => s + (parseFloat(r['Balance Due']) || 0), 0);
+    // A memo's Balance Due is synced identically onto every item in that
+    // memo (so each row looks correct on its own) — but that means naively
+    // summing Balance Due across every row multiplies a shared balance by
+    // however many items share that memo. Count each memo group's balance
+    // exactly once instead; solo (non-memo) items still count individually.
+    const seenMemoKeys = new Set();
+    let totalOutstanding = 0;
+    let unpaidOrPartialCount = 0;
+    soldRows.forEach(r => {
+      const memoKey = String(getField(r, 'Memo No.') || '').trim().toLowerCase();
+      if (memoKey) {
+        if (seenMemoKeys.has(memoKey)) return; // already counted this memo's balance once
+        seenMemoKeys.add(memoKey);
+      }
+      const bal = parseFloat(r['Balance Due']) || 0;
+      if (bal > 0) {
+        totalOutstanding += bal;
+        unpaidOrPartialCount++;
+      }
+    });
 
     const kpis = [
       { key:'orders', label: 'Total Orders', raw: totalOrders, fmt: v => Math.round(v).toLocaleString('en-IN'), sub: 'across all customers' },
@@ -1102,7 +1143,7 @@
       { key:'netwt', label: 'Net Weight', raw: totalNetWt, fmt: v => fmtNum(v, 2) + ' g', sub: 'total gold weight' },
       { key:'diact', label: 'Diamonds', raw: totalDiaCt, fmt: v => fmtNum(v, 2) + ' ct', sub: 'total carat weight' },
       { key:'sold', label: 'Pieces Sold', raw: soldRows.length, fmt: v => Math.round(v).toLocaleString('en-IN'), sub: `of ${totalOrders} total pieces` },
-      { key:'outstanding', label: 'Outstanding Balance', raw: totalOutstanding, fmt: v => fmtMoney(v), sub: `across ${unpaidOrPartial.length} unpaid/partial` },
+      { key:'outstanding', label: 'Outstanding Balance', raw: totalOutstanding, fmt: v => fmtMoney(v), sub: `across ${unpaidOrPartialCount} unpaid/partial` },
     ];
 
     const grid = $('kpiGrid');
@@ -1159,7 +1200,7 @@
         <td class="num col-usd">${fmtNum(r['$'], 2)}</td>
         <td class="col-memoNo">${getField(r, 'Memo No.') || '—'}</td>
         <td>${r['Sold To'] ?? '—'}</td>
-                <td class="num col-salePrice">${String(getField(r, 'Sale Price') ?? '').trim() === '' ? '—' : fmtUSD(getField(r, 'Sale Price'))}</td>
+        <td class="num col-salePrice">${String(getField(r, 'Sale Price') ?? '').trim() === '' ? '—' : fmtUSD(getField(r, 'Sale Price'))}</td>
         <td>${getPaymentBadge(r)}</td>
       </tr>
     `).join('');
@@ -1474,12 +1515,6 @@
     $('err_f_installment').textContent = '';
     renderInstallments();
 
-    currentInstallments = loadedInstallments;
-    $('f_instAmount').value = '';
-    $('f_instDate').value = '';
-    $('err_f_installment').textContent = '';
-    renderInstallments();
-
     // Manufacturing details: only the manufacturer (staff) can edit these.
     const manufacturingIds = ['f_customer','f_style','f_date','f_grossWt','f_netWt','f_diaQty','f_inCt','f_colourStone','f_multiplier','f_diamAmount','f_lCharges'];
     manufacturingIds.forEach(id => { $(id).readOnly = !isStaff; });
@@ -1513,14 +1548,35 @@
   ['f_netWt','f_multiplier','f_diamAmount','f_lCharges','f_salePrice','f_memoNo'].forEach(id => {
     $(id).addEventListener('input', updatePreview);
   });
-  // Auto-fill buyer when memo number matches an existing order
+  // Auto-fill buyer + existing payment history when memo number matches
+  // an existing order. Without this, a brand-new item linked to an
+  // existing memo would start "blank" and — since the backend treats the
+  // group's payment log as shared — could look like the memo has never
+  // been paid even though sibling items already have recorded payments.
   $('f_memoNo').addEventListener('input', () => {
     const memoVal = $('f_memoNo').value.trim();
-    if (memoVal && !$('f_soldTo').value.trim()) {
-      const siblings = getMemoSiblings(memoVal, editingRow);
-      if (siblings.length && siblings[0]['Sold To']) {
-        $('f_soldTo').value = siblings[0]['Sold To'];
-        formDirty = true;
+    if (!memoVal) return;
+    const siblings = getMemoSiblings(memoVal, editingRow);
+    if (!siblings.length) return;
+
+    if (!$('f_soldTo').value.trim() && siblings[0]['Sold To']) {
+      $('f_soldTo').value = siblings[0]['Sold To'];
+      formDirty = true;
+    }
+
+    if (!currentInstallments.length) {
+      const withLog = siblings.find(r => r['Payment Log']);
+      if (withLog) {
+        try {
+          const parsed = JSON.parse(withLog['Payment Log']);
+          if (Array.isArray(parsed)) {
+            currentInstallments = parsed
+              .filter(x => x && !isNaN(parseFloat(x.amount)))
+              .map(x => ({ date: x.date || '', amount: parseFloat(x.amount) }));
+            renderInstallments();
+            formDirty = true;
+          }
+        } catch (e) { /* ignore unparsable legacy log */ }
       }
     }
   });
