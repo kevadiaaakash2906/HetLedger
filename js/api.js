@@ -42,7 +42,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby6EY9PbCkjukEl
   // was bound to fail sometimes even though nothing was actually broken.
   // So: try up to 3 times total, with a short backoff between attempts,
   // before ever surfacing an error to the person using the app.
-  function jsonp(payload, { retries = 2, timeoutMs = 30000 } = {}) {
+  function jsonp(payload, { retries = 3, timeoutMs = 30000 } = {}) {
     return (async () => {
       let lastErr;
       for (let attempt = 0; attempt <= retries; attempt++) {
