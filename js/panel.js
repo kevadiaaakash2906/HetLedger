@@ -395,12 +395,11 @@
     if (!fields.customer) fail('f_customer', 'Customer is required.');
     if (!fields.style) fail('f_style', 'Style No. is required.');
 
-    // Net Wt is required and must be a real positive number — everything
-    // downstream (gold amount, sub total, $) is derived from it.
-    if (!String(fields.netWt).trim()) {
-      fail('f_netWt', 'Net Wt is required.');
-    } else if (isNaN(parseFloat(fields.netWt)) || parseFloat(fields.netWt) <= 0) {
-      fail('f_netWt', 'Net Wt must be a positive number.');
+    // Net Wt is optional — leave blank and all derived amounts stay at 0.
+    if (String(fields.netWt).trim() !== '') {
+      if (isNaN(parseFloat(fields.netWt)) || parseFloat(fields.netWt) < 0) {
+        fail('f_netWt', 'Net Wt must be a positive number.');
+      }
     }
 
     if (String(fields.grossWt).trim() !== '') {
