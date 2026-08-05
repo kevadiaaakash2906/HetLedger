@@ -42,7 +42,7 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQv8kXc3urzvII
   // was bound to fail sometimes even though nothing was actually broken.
   // So: try up to 3 times total, with a short backoff between attempts,
   // before ever surfacing an error to the person using the app.
-  function jsonp(payload, { retries = 3, timeoutMs = 30000 } = {}) {
+  function jsonp(payload, { retries = 3, timeoutMs = 35000 } = {}) {
     return (async () => {
       let lastErr;
       for (let attempt = 0; attempt <= retries; attempt++) {
@@ -62,3 +62,12 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQv8kXc3urzvII
       throw lastErr;
     })();
   }
+// Warm up the Apps Script instance as soon as the login page loads,
+// so by the time the user types their password and clicks Unlock,
+// the instance is already hot.
+(function warmUp() {
+  // Use the customer password so it completes auth successfully
+  jsonp({ action: 'auth', pass: 'qwertyuiop' }, { retries: 0, timeoutMs: 40000 })
+    .then(() => console.log('Warmup OK'))
+    .catch(() => {}); // ignore errors — this is just a wake-up call
+})();
