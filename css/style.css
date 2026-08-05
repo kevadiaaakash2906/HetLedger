@@ -1,4 +1,4 @@
-:root{
+  :root{
     --bg: #1E1B18;
     --surface: #262220;
     --surface-raised: #2E2925;
@@ -169,7 +169,11 @@ thead th{
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   cursor:pointer; user-select:none; transition: color 0.15s, box-shadow 0.2s ease;
   position: sticky; top: var(--header-h);
-  z-index: 100;                      /* was 5 — too low */
+  /* Needs to sit above the topbar (z-index:10) so it doesn't get covered
+     while scrolling, but below the edit panel/overlay (20-23) and toasts
+     (30) — 100 was fixing the first problem but accidentally floated the
+     header above everything else in the app, including the edit panel. */
+  z-index: 15;
   box-shadow: 0 1px 0 var(--line);
 }
 thead.is-stuck th{
