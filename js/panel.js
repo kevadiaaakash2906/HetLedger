@@ -59,7 +59,7 @@
     const pgWt = netWt * multiplier;
     const goldAmount = pgWt * GOLD_RATE_PER_10G;
     const laborAmount = netWt * lCharges;
-    const subTotal = goldAmount + diamAmount + lCharges + laborAmount;
+    const subTotal = goldAmount + diamAmount + laborAmount;
     const usd = subTotal / USD_RATE;
 
     return { pgWt, goldAmount, laborAmount, subTotal, usd };
