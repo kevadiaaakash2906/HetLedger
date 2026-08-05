@@ -448,7 +448,7 @@
 
 
   // ============ SAVE ============
-  $('saveBtn').addEventListener('click', async () => {
+    $('saveBtn').addEventListener('click', async () => {
     const fields = collectFields();
     if (!validateFields(fields)) {
       $('saveMsg').textContent = 'Please fix the highlighted fields before saving.';
@@ -485,11 +485,34 @@
         $('saveMsg').className = 'bad';
         return;
       }
+
+      // OPTIMISTIC UPDATE: immediately build the order object locally
+      // so the UI feels instant instead of waiting for a full re-fetch.
+      const savedOrder = buildLocalOrder(fields, computed, data.row || editingRow);
+      if (payload.action === 'add') {
+        ORDERS.push(savedOrder);
+      } else {
+        const idx = ORDERS.findIndex(r => r._row === editingRow);
+        if (idx !== -1) ORDERS[idx] = savedOrder;
+      }
+
+      // Re-render everything immediately with local data
+      renderKPIs();
+      renderHeaderStats();
+      populateCustomerFilter();
+      renderResults(applyFilter());
+
       $('saveMsg').textContent = 'Saved successfully.';
       $('saveMsg').className = 'good';
       if (payload.action === 'add') playScreenFx('add');
-      await refreshOrders();
-      setTimeout(closePanelFn, 600);
+
+      // Close panel fast — no waiting for refresh
+      setTimeout(closePanelFn, 300);
+
+      // Silent background refresh after 2s to sync any server-side
+      // changes (e.g. memo payment sync, Sr. No. conflicts)
+      setTimeout(() => refreshOrders(true).catch(() => {}), 2000);
+
     } catch (err) {
       $('saveBtn').textContent = 'Save';
       $('saveBtn').disabled = false;
