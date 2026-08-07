@@ -215,5 +215,3 @@ Object.assign(window, {
   fetchTrading, addTrading, updateTrading, deleteTrading,
   syncMemoPayments, restoreOrder, migrateOrders
 });
-// TEMPORARY: expose for one-time migration
-Object.assign(window, { db, writeBatch, doc, collection, serverTimestamp });
