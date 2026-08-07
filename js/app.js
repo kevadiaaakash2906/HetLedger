@@ -285,5 +285,12 @@ function getFilteredTrading() {
   }
   return rows;
 }
+Object.assign(window, {
+  ROLE, DK, SHEET_KEYS, ORDERS, TRADING,
+  currentPage, PAGE_SIZE,
+  getFilteredOrders, getFilteredTrading,
+  switchView, renderAll,
+  fetchOrders, fetchTrading
+});
 
 
