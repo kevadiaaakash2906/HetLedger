@@ -16,7 +16,7 @@ var firebaseConfig = {
 window.firebase.initializeApp(firebaseConfig);
 var db = window.firebase.firestore();
 
-var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzJ5U6ndEPYNt2r9cmzKnXK1w0q_WqqHXkhN73h8Iu7giXrCtjn9iwwhO4amKa54FbMlw/exec';
+var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbx9yEy0j0EHMegp_tzHX5-Q1xSuLHsp6Em98fLIg8wp9hbzIVbkTHeWhkWzZHgLE9RAYw/exec';
 
 /* ============ ORDERS ============ */
 async function fetchOrders() {
