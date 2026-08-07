@@ -429,7 +429,7 @@ main { padding: 20px 24px; }
    CARDS (Mobile) — Collapsible Tiles
    ============================================ */
 .card-list {
-  display: none;
+  display: none !important;
   gap: 12px;
   flex-direction: column;
 }
@@ -1133,9 +1133,10 @@ mark.search-highlight {
   .kpi-value { font-size: 16px; }
   .kpi-sub { font-size: 10px; }
 
-  /* Mobile: hide table, show cards */
+  /* Mobile: hide table, show active cards only */
   .table-wrap { display: none; }
-  .card-list { display: flex !important; }
+  .card-list { display: none !important; }
+  .card-list.active { display: flex !important; }
 
   .pagination-bar {
     gap: 4px;
