@@ -27,12 +27,13 @@ window.login = async function() {
       ROLE = role;
       USER_HASH = hash;
 
+      // Sign into Firebase Auth (create if missing, sign in if exists)
       try {
         var email = role + '@vinere.local';
-        await window.firebase.auth().signInWithEmailAndPassword(email, input);
+        await window.firebase.auth().createUserWithEmailAndPassword(email, input);
       } catch (err) {
-        if (err.code === 'auth/user-not-found') {
-          await window.firebase.auth().createUserWithEmailAndPassword(email, input);
+        if (err.code === 'auth/email-already-in-use') {
+          await window.firebase.auth().signInWithEmailAndPassword(email, input);
         } else {
           console.error('Firebase auth failed', err);
           $('loginError').textContent = 'Auth error — check console';
