@@ -20,8 +20,11 @@ var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbx9yEy0j0EHMegp
 
 /* ============ ORDERS ============ */
 async function fetchOrders() {
-  var snap = await db.collection('orders').orderBy('Sr. No.', 'asc').get();
+  var snap = await db.collection('orders').get();
   var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
+  rows.sort(function(a, b) {
+    return (parseInt(a['Sr. No.']) || 0) - (parseInt(b['Sr. No.']) || 0);
+  });
   return { rows: rows };
 }
 
@@ -50,15 +53,6 @@ async function deleteOrder(id, srNo) {
 }
 
 /* ============ TRADING ============ */
-async function fetchOrders() {
-  var snap = await db.collection('orders').get();
-  var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
-  // Sort client-side because "Sr. No." contains a dot
-  rows.sort(function(a, b) {
-    return (parseInt(a['Sr. No.']) || 0) - (parseInt(b['Sr. No.']) || 0);
-  });
-  return { rows: rows };
-}
 async function fetchTrading() {
   var snap = await db.collection('trading').get();
   var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
@@ -67,6 +61,18 @@ async function fetchTrading() {
   });
   return { rows: rows };
 }
+
+async function addTrading(data) {
+  var ref = db.collection('trading').doc();
+  await ref.set({
+    ...data,
+    createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  });
+  syncToSheet({ ...data, _collection: 'trading' });
+  return ref.id;
+}
+
 async function updateTrading(id, data) {
   await db.collection('trading').doc(id).set({
     ...data,
