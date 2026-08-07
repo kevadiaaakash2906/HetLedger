@@ -137,6 +137,7 @@ function renderAll() {
     renderTradePagination();
   }
   equalizeColumnWidths();
+  updateSearchUI();
 }
 
 /* ============ COLUMN WIDTHS ============ */
@@ -190,14 +191,39 @@ function switchView(view) {
 }
 
 /* ============ SEARCH ============ */
-var searchTimeout;
 $('search').addEventListener('input', function(e) {
   currentSearchQuery = e.target.value.trim().toLowerCase();
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(function() {
-    currentPage = 1;
-    renderAll();
-  }, 300);
+  currentPage = 1;
+  updateSearchUI();
+  renderAll();
+});
+
+function updateSearchUI() {
+  var clearBtn = $('searchClear');
+  var countEl = $('resultCount');
+  if (clearBtn) clearBtn.style.display = currentSearchQuery ? 'flex' : 'none';
+
+  var count = currentView === 'orders' 
+    ? getFilteredOrders().length 
+    : getFilteredTrading().length;
+
+  if (countEl) {
+    if (currentSearchQuery) {
+      countEl.textContent = count + ' result' + (count !== 1 ? 's' : '');
+      countEl.style.display = 'inline-flex';
+    } else {
+      countEl.style.display = 'none';
+    }
+  }
+}
+
+$('searchClear').addEventListener('click', function() {
+  $('search').value = '';
+  currentSearchQuery = '';
+  currentPage = 1;
+  updateSearchUI();
+  renderAll();
+  $('search').focus();
 });
 
 /* ============ REFRESH ============ */
