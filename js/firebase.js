@@ -8,17 +8,15 @@ import {
   query, serverTimestamp, writeBatch, where, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ═══════════════════════════════════════════
-// PASTE YOUR FIREBASE CONFIG BELOW
-// ═══════════════════════════════════════════
 const firebaseConfig = {
-    apiKey: "AIzaSyC3GlUHfz6Zfd1o5eymGcY_jkyz4MuVfls",
+  apiKey: "AIzaSyC3GlUHfz6Zfd1o5eymGcY_jkyz4MuVfls",
   authDomain: "vinereledger-b29be.firebaseapp.com",
   databaseURL: "https://vinereledger-b29be-default-rtdb.firebaseio.com",
   projectId: "vinereledger-b29be",
   storageBucket: "vinereledger-b29be.firebasestorage.app",
   messagingSenderId: "701394930039",
-  appId: "1:701394930039:web:456e7ae9c61fc92402b972"
+  appId: "1:701394930039:web:456e7ae9c61fc92402b972",
+  measurementId: "G-HQN3J4LGXE"
 };
 
 const app = initializeApp(firebaseConfig);
