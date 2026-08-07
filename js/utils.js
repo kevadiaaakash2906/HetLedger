@@ -88,3 +88,64 @@
   Object.assign(window, {
     $, fmtMoney, fmtUSD, fmtNum, gramsToCarats, getField, fmtDate, excelDateToJSDate, playScreenFx, showToast
   });
+/* ============ TOAST SYSTEM ============ */
+const toastContainer = document.getElementById('toastContainer');
+
+function showToast(message, type = 'info', duration = 4000) {
+  if (!toastContainer) return;
+  
+  const titles = {
+    success: 'Success',
+    error: 'Error',
+    warning: 'Warning',
+    info: 'Info'
+  };
+  
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <div class="toast-icon"></div>
+    <div class="toast-body">
+      <div class="toast-title">${titles[type] || 'Info'}</div>
+      <div class="toast-message">${escapeHtml(message)}</div>
+    </div>
+    <button class="toast-close">&times;</button>
+    <div class="toast-progress" style="animation-duration: ${duration}ms;"></div>
+  `;
+  
+  const closeBtn = toast.querySelector('.toast-close');
+  closeBtn.addEventListener('click', () => dismissToast(toast));
+  
+  toastContainer.appendChild(toast);
+  
+  const autoDismiss = setTimeout(() => dismissToast(toast), duration);
+  
+  // Pause on hover
+  toast.addEventListener('mouseenter', () => {
+    clearTimeout(autoDismiss);
+    toast.querySelector('.toast-progress').style.animationPlayState = 'paused';
+  });
+}
+
+function dismissToast(toast) {
+  if (!toast || toast.classList.contains('toast-exit')) return;
+  toast.classList.add('toast-exit');
+  toast.addEventListener('animationend', () => toast.remove());
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+/* ============ SEARCH HIGHLIGHT ============ */
+function highlightText(text, query) {
+  if (!query || !text) return escapeHtml(String(text));
+  const q = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${q})`, 'gi');
+  return escapeHtml(String(text)).replace(regex, '<mark class="search-highlight">$1</mark>');
+}
+
+// Expose globally
+Object.assign(window, { showToast, dismissToast, highlightText });
