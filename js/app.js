@@ -2,8 +2,6 @@
    VINÉRE — App Core
    ============================================ */
 
-import { $, showToast } from "./utils.js";
-
 /* ============ AUTH / ROLE ============ */
 const PASSWORDS = {
   staff:   '25f885fa451c3c6b024fe23dbf834ceb2be6361316010ef348e7777faa78634c',
@@ -288,5 +286,4 @@ function getFilteredTrading() {
   return rows;
 }
 
-/* ============ EXPORTS ============ */
-export { ROLE, currentPage, PAGE_SIZE, getFilteredOrders, getFilteredTrading, switchView, renderAll };
+
