@@ -2,8 +2,6 @@
    VINÉRE — Dashboard / KPI Cards
    ============================================ */
 
-import { $, fmtMoney } from "./utils.js";
-import { DK, SHEET_KEYS, ORDERS, TRADING } from "./app.js";
 
 export function renderKPIs() {
   const sold = ORDERS.filter(r => String(r[DK.salePrice] ?? '').trim() !== '');
@@ -99,3 +97,4 @@ export function renderTradeKPIs() {
     </div>
   `;
 }
+Object.assign(window, { renderKPIs, renderTradeKPIs });
