@@ -26,6 +26,18 @@ window.login = async function() {
     if (hash === PASSWORDS[role]) {
       ROLE = role;
       USER_HASH = hash;
+
+      // Sign into Firebase Auth so Firestore rules allow access
+      try {
+        var email = role + '@vinere.local';
+        await window.firebase.auth().signInWithEmailAndPassword(email, input);
+      } catch (authErr) {
+        console.error('Firebase auth failed', authErr);
+        $('loginError').textContent = 'Auth setup error — contact admin';
+        showToast('Firebase auth failed', 'error');
+        return;
+      }
+
       $('login').style.display = 'none';
       $('app').style.display = 'block';
       document.body.style.background = 'var(--bg)';
@@ -46,7 +58,6 @@ window.login = async function() {
   $('loginError').textContent = 'Invalid access code';
   showToast('Invalid access code', 'error');
 };
-
 $('loginBtn').addEventListener('click', window.login);
 $('passInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') window.login(); });
 
