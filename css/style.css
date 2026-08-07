@@ -429,7 +429,7 @@ main { padding: 20px 24px; }
    CARDS (Mobile)
    ============================================ */
 .card-list {
-  display: none;
+  display: none !important;
   gap: 12px;
   flex-direction: column;
 }
