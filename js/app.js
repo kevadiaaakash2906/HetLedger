@@ -176,8 +176,8 @@ function switchView(view) {
 
   $('ordersTable').style.display = view === 'orders' ? 'table' : 'none';
   $('tradingTable').style.display = view === 'trading' ? 'table' : 'none';
-  $('cardList').style.display = view === 'orders' ? 'flex' : 'none';
-  $('tradeCardList').style.display = view === 'trading' ? 'flex' : 'none';
+  $('cardList').classList.toggle('active', view === 'orders');
+  $('tradeCardList').classList.toggle('active', view === 'trading');
   $('kpiGrid').style.display = view === 'orders' ? 'grid' : 'none';
   $('tradeKpiGrid').style.display = view === 'trading' ? 'grid' : 'none';
   $('paginationBar').style.display = view === 'orders' ? 'flex' : 'none';
