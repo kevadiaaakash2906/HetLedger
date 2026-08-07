@@ -50,23 +50,23 @@ async function deleteOrder(id, srNo) {
 }
 
 /* ============ TRADING ============ */
-async function fetchTrading() {
-  var snap = await db.collection('trading').orderBy('Sr. No.', 'asc').get();
+async function fetchOrders() {
+  var snap = await db.collection('orders').get();
   var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
+  // Sort client-side because "Sr. No." contains a dot
+  rows.sort(function(a, b) {
+    return (parseInt(a['Sr. No.']) || 0) - (parseInt(b['Sr. No.']) || 0);
+  });
   return { rows: rows };
 }
-
-async function addTrading(data) {
-  var ref = db.collection('trading').doc();
-  await ref.set({
-    ...data,
-    createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
-    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+async function fetchTrading() {
+  var snap = await db.collection('trading').get();
+  var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
+  rows.sort(function(a, b) {
+    return (parseInt(a['Sr. No.']) || 0) - (parseInt(b['Sr. No.']) || 0);
   });
-  syncToSheet({ ...data, _collection: 'trading' });
-  return ref.id;
+  return { rows: rows };
 }
-
 async function updateTrading(id, data) {
   await db.collection('trading').doc(id).set({
     ...data,
