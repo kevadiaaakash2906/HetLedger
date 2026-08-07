@@ -2,8 +2,6 @@
    VINÉRE — Receive Payment Modal
    ============================================ */
 
-import { $, fmtMoney, showToast } from "./utils.js";
-import { DK, ORDERS, fetchOrders, renderAll } from "./app.js";
 
 window.openPaymentSearch = function() {
   $('paymentSearchOverlay').style.display = 'block';
