@@ -2,8 +2,7 @@
    VINÉRE — Order Panel (Create / Edit)
    ============================================ */
 
-import { $, fmtDate, showToast } from "./utils.js";
-import { DK, ORDERS, ROLE, fetchOrders, renderAll } from "./app.js";
+
 
 let editingId = null;
 let currentInstallments = [];
