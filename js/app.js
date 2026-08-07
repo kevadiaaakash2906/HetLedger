@@ -27,7 +27,6 @@ window.login = async function() {
       ROLE = role;
       USER_HASH = hash;
 
-      // Sign into Firebase Auth (create if missing, sign in if exists)
       try {
         var email = role + '@vinere.local';
         await window.firebase.auth().createUserWithEmailAndPassword(email, input);
@@ -93,7 +92,7 @@ var currentView = 'orders';
 var sortCol = 'sr';
 var sortDesc = false;
 var currentPage = 1;
-var PAGE_SIZE = 25;
+var PAGE_SIZE = 100;
 
 /* ============ INIT ============ */
 async function initApp() {
@@ -248,9 +247,11 @@ function renderPagination() {
   var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
   $('paginationBar').innerHTML =
+    '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changePage(1)">First</button>' +
     '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changePage(' + (currentPage - 1) + ')">Prev</button>' +
     '<span class="page-info">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changePage(' + (currentPage + 1) + ')">Next</button>';
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changePage(' + (currentPage + 1) + ')">Next</button>' +
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changePage(' + totalPages + ')">Last</button>';
 }
 
 function renderTradePagination() {
@@ -258,9 +259,11 @@ function renderTradePagination() {
   var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
   $('tradePaginationBar').innerHTML =
+    '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changeTradePage(1)">First</button>' +
     '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changeTradePage(' + (currentPage - 1) + ')">Prev</button>' +
     '<span class="page-info">Page ' + currentPage + ' of ' + totalPages + '</span>' +
-    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changeTradePage(' + (currentPage + 1) + ')">Next</button>';
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changeTradePage(' + (currentPage + 1) + ')">Next</button>' +
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changeTradePage(' + totalPages + ')">Last</button>';
 }
 
 window.changePage = function(p) { currentPage = p; renderTable(); renderPagination(); };
