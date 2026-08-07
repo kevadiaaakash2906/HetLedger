@@ -27,18 +27,6 @@ window.login = async function() {
       ROLE = role;
       USER_HASH = hash;
 
-      // Sign into Firebase Auth so Firestore rules allow access
-  window.login = async function() {
-  var input = $('passInput').value.trim();
-  if (!input) return;
-  var hash = await sha256(input);
-
-  for (var role in PASSWORDS) {
-    if (hash === PASSWORDS[role]) {
-      ROLE = role;
-      USER_HASH = hash;
-
-      // Sign into Firebase Auth (auto-create if first time)
       try {
         var email = role + '@vinere.local';
         await window.firebase.auth().signInWithEmailAndPassword(email, input);
@@ -73,6 +61,7 @@ window.login = async function() {
   $('loginError').textContent = 'Invalid access code';
   showToast('Invalid access code', 'error');
 };
+
 $('loginBtn').addEventListener('click', window.login);
 $('passInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') window.login(); });
 
