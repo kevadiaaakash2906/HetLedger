@@ -1,157 +1,141 @@
-// ============================================================
-// app.js — shared config/state, header sync, login, roles,
-// and the refresh/reload flow. Loaded after utils.js and firebase.js.
-// ============================================================
+/* ============================================
+   VINÉRE — App Core
+   ============================================ */
 
-// NOTE: utils.js and firebase.js are loaded as modules before this script
-// and expose all their exports on window.  We use those globals here.
+import { $, showToast } from "./utils.js";
 
-// ---------- Configure this ----------
-const GOLD_RATE_PER_10G = 16000;
-const USD_RATE = 94;
-// -------------------------------------
-
-// ============ APP STATE ============
-// Use var (not let) so these are attached to window and visible to other
-// deferred scripts (dashboard.js, filters.js, panel.js, etc.)
-var PASS = '';
-var ROLE = 'staff';
-var ORDERS = [];
-var editingRow = null;
-var sortKey = null;
-var sortDir = 'asc';
-var deleteHoldRAF = null;
-var currentInstallments = []; // [{date, amount}] for the order currently open in the panel
-// ============ SHEET KEY MAPPINGS ============
-// Change these if your Google Sheet headers ever change
-var ORDERS_KEYS = {
-  srNo: 'Sr. No.',
-  customer: 'CUSTOMER ',
-  customerAlt: 'CUSTOMER',
-  styleNo: 'Style No.',
-  date: 'Date',
-  grossWt: 'Gross Wt',
-  diaQty: 'Dia Qty',
-  inCt: 'IN CT',
-  colourStone: 'COLOUR STONE',
-  netWt: 'Net Wt',
-  multiplier: 'Multiplier',
-  pgWt: 'Pg Wt',
-  goldAmount: 'Gold Amount',
-  diamAmount: 'Diam Amount',
-  lCharges: 'L CHARGES',
-  laborAmount: 'Labor Amount',
-  subTotal: 'SUB TOTAL',
-  usd: '$',
-  soldTo: 'Sold To',
-  salePrice: 'Sale Price',
-  dateSold: 'Date Sold',
-  amountPaid: 'Amount Paid',
-  balanceDue: 'Balance Due',
-  paymentStatus: 'Payment Status',
-  paymentLog: 'Payment Log',
-  memoNo: 'Memo No.'
+/* ============ AUTH / ROLE ============ */
+const PASSWORDS = {
+  staff:   'a5f3c6a11b7e2d9e4f8a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3',
+  seller:  'b6e4d7f2a9c1e5b8d3f7a2c6e0b4d8f1a3c7e9b2d6f0a4c8e2b6d0f4a8c2e6',
+  customer:'c7f5e8g3b0d2f6a9c4e8b1d5f9a3c7e1b5d9f3a7c1e5b9d3f7a1c5e9b3d7'
 };
 
-$('rateNote').textContent = `Gold: ₹${GOLD_RATE_PER_10G.toLocaleString('en-IN')}/10g · $1 = ₹${USD_RATE} (fixed rates)`;
+let ROLE = null;
+let USER_HASH = null;
 
-// Keep the sticky table-header offset in sync with the real topbar
-// height, since it wraps to a taller block on narrow screens.
-function syncHeaderHeight() {
-  const topbar = document.querySelector('header.topbar');
-  if (topbar) document.documentElement.style.setProperty('--header-h', topbar.offsetHeight + 'px');
-  updateStuckHeader();
-  document.querySelectorAll('.order-card.open .order-card-body').forEach(body => {
-    body.style.maxHeight = body.scrollHeight + 'px';
-  });
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-let resizeDebounceTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeDebounceTimer);
-  resizeDebounceTimer = setTimeout(syncHeaderHeight, 100);
-});
-window.addEventListener('load', syncHeaderHeight);
 
-// Adds a drop shadow under the table header only once it's actually
-// pinned in place, so it doesn't look like it's floating at rest.
-function updateStuckHeader() {
-  const theadEl = document.querySelector('#app thead');
-  if (!theadEl) return;
-  const headerH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 0;
-  const rect = theadEl.getBoundingClientRect();
-  theadEl.classList.toggle('is-stuck', rect.top <= headerH + 1);
+window.login = async function() {
+  const input = $('passInput').value.trim();
+  if (!input) return;
+  const hash = await sha256(input);
+
+  for (const [role, pwdHash] of Object.entries(PASSWORDS)) {
+    if (hash === pwdHash) {
+      ROLE = role;
+      USER_HASH = hash;
+      $('login').style.display = 'none';
+      $('app').style.display = 'block';
+      document.body.style.background = 'var(--bg)';
+
+      // Role-based UI
+      const isStaff = ROLE === 'staff';
+      const isSeller = ROLE === 'seller';
+
+      $('newOrderBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+      $('receivePaymentBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+      $('newTradeBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+
+      await initApp();
+      showToast(`Welcome, ${role}`, 'success', 2000);
+      return;
+    }
+  }
+
+  $('loginError').textContent = 'Invalid access code';
+  showToast('Invalid access code', 'error');
+};
+
+$('loginBtn').addEventListener('click', window.login);
+$('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.login(); });
+
+/* ============ DATA KEYS ============ */
+export const DK = {
+  sr: 'Sr. No.', customer: 'CUSTOMER ', style: 'Style No.', date: 'Date',
+  grossWt: 'Gross Wt', diaQty: 'Dia Qty', inCt: 'IN CT', colourStone: 'COLOUR STONE',
+  netWt: 'Net Wt', multiplier: 'Multiplier', pgWt: 'Pg Wt', goldAmt: 'Gold Amount',
+  diamAmount: 'Diam Amount', lCharges: 'L CHARGES', laborAmt: 'Labor Amount',
+  subTotal: 'SUB TOTAL', usd: '$', soldTo: 'Sold To', salePrice: 'Sale Price',
+  dateSold: 'Date Sold', amountPaid: 'Amount Paid', balanceDue: 'Balance Due',
+  paymentStatus: 'Payment Status', paymentLog: 'Payment Log', memoNo: 'Memo No.'
+};
+
+export const SHEET_KEYS = {
+  sr: 'Sr. No.', date: 'Date', item: 'Item', vendor: 'Vendor',
+  purchasePrice: 'Purchase Price', salePrice: 'Sale Price', dateSold: 'Date Sold',
+  soldTo: 'Sold To', amountPaid: 'Amount Paid', balanceDue: 'Balance Due',
+  paymentStatus: 'Payment Status', paymentLog: 'Payment Log', profit: 'Profit / Loss', notes: 'Notes'
+};
+
+/* ============ GLOBAL STATE ============ */
+export let ORDERS = [];
+export let TRADING = [];
+export let currentSearchQuery = '';
+
+let currentView = 'orders';
+let sortCol = 'sr';
+let sortDesc = false;
+let currentPage = 1;
+const PAGE_SIZE = 25;
+
+/* ============ INIT ============ */
+async function initApp() {
+  await fetchOrders();
+  await fetchTrading();
+  renderAll();
 }
-window.addEventListener('scroll', updateStuckHeader, { passive: true });
 
-// ============ LOGIN ============
-$('loginBtn').addEventListener('click', doLogin);
-$('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
-
-async function doLogin() {
-  const pass = $('passInput').value.trim();
-  if (!pass) return;
-  $('loginError').textContent = '';
-  $('loginBtn').textContent = 'Checking…';
-
+/* ============ FETCH ORDERS ============ */
+export async function fetchOrders() {
   try {
-    const data = await window.login(pass);
-    PASS = pass;
-    ROLE = data.role || 'staff';
-    await loadOrders();
-    $('login').style.display = 'none';
-    $('app').style.display = 'block';
-    syncHeaderHeight();
-    applyRoleRestrictions();
-    renderKPIs();
-    renderHeaderStats();
-    populateCustomerFilter();
-    currentPage = 1;
-    renderResults(applyFilter());
-    showToast(`Welcome. ${ORDERS.length} orders loaded.`);
+    const { rows } = await window.fetchOrders();
+    ORDERS = rows;
+    console.log('Loaded', ORDERS.length, 'orders');
   } catch (err) {
-    $('loginError').textContent = err.message || 'Wrong password';
-    $('loginBtn').textContent = 'Unlock';
+    console.error('Fetch orders failed', err);
+    showToast('Failed to load orders', 'error');
   }
 }
 
-// Three roles: 'staff' (manufacturer — full access), 'seller' (your
-// brother — can view everything, but only edit Sold To / Sale Price /
-// Date Sold / payments), 'customer' (view-only). The backend enforces
-// all of this independently — this just keeps the UI honest.
+/* ============ FETCH TRADING ============ */
+export async function fetchTrading() {
+  try {
+    const { rows } = await window.fetchTrading();
+    TRADING = rows;
+  } catch (err) {
+    console.error('Fetch trading failed', err);
+  }
+}
 
-function applyRoleRestrictions() {
-  const isStaff = ROLE === 'staff';
-  const canEditSale = ROLE === 'staff' || ROLE === 'seller';
-  const newOrderBtn = $('newOrderBtn');
-  if (newOrderBtn) newOrderBtn.style.display = isStaff ? '' : 'none';
-  const receivePaymentBtn = $('receivePaymentBtn');
-  if (receivePaymentBtn) receivePaymentBtn.style.display = canEditSale ? '' : 'none';
-  // 'view-only' hides the Save button and dims controls entirely — only
-  // applies to pure viewers (customers), since sellers can still save.
-  document.body.classList.toggle('view-only', !canEditSale);
-  // role-staff / role-seller / role-customer drives which columns show
-  // (INR manufacturing figures for staff, USD + carat weight for seller).
-  document.body.classList.remove('role-staff', 'role-seller', 'role-customer');
-  document.body.classList.add('role-' + ROLE);
+/* ============ RENDER ALL ============ */
+function renderAll() {
+  if (currentView === 'orders') {
+    renderKPIs();
+    renderTable();
+    renderPagination();
+    populateFilters();
+  } else {
+    renderTradeKPIs();
+    renderTradeTable();
+    renderTradePagination();
+  }
   equalizeColumnWidths();
 }
 
-// visibility:collapse hides a column, but doesn't reliably make the
-// *remaining* columns stretch to fill the freed space in every browser —
-// some just leave a blank gap where the hidden columns used to be. This
-// computes an exact equal share for whichever columns are actually
-// visible for the current role, so the table always fills the full
-// width no matter how many columns that role happens to see.
+/* ============ COLUMN WIDTHS ============ */
 function equalizeColumnWidths() {
   const table = document.getElementById('ordersTable');
   if (!table) return;
   const cols = table.querySelectorAll('colgroup col');
   if (!cols.length) return;
 
-  // Base widths matching the inline styles above
   const baseWidths = [5, 7, 10, 8, 6, 6, 6, 6, 9, 6, 7, 9, 7, 8];
-
   const visibleIndices = [];
+
   cols.forEach((col, i) => {
     if (getComputedStyle(col).visibility === 'collapse') {
       col.style.width = '0%';
@@ -161,43 +145,148 @@ function equalizeColumnWidths() {
   });
 
   if (!visibleIndices.length) return;
-
   const visibleTotal = visibleIndices.reduce((sum, i) => sum + baseWidths[i], 0);
   visibleIndices.forEach(i => {
-    const proportional = (baseWidths[i] / visibleTotal) * 100;
-    cols[i].style.width = proportional + '%';
+    cols[i].style.width = ((baseWidths[i] / visibleTotal) * 100) + '%';
   });
 }
 
+/* ============ VIEW TOGGLE ============ */
+$('ordersViewBtn').addEventListener('click', () => switchView('orders'));
+$('tradingViewBtn').addEventListener('click', () => switchView('trading'));
 
-// ============ LOAD / REFRESH ============
-async function loadOrders() {
-  renderSkeleton();
-  try {
-    const data = await window.fetchOrders();
-    ORDERS = (data.rows || []).filter(r => r['Style No.'] && String(r['Style No.']).trim() !== '');
-    // Firestore returns ISO date strings already — no Excel serial conversion needed
-    renderKPIs();
-    renderHeaderStats();
-    populateCustomerFilter();
-    currentPage = 1;
-    renderResults(applyFilter());
-    showToast('Orders loaded');
-  } catch (err) {
-    renderErrorState(err.message || 'Could not load orders.');
-    showToast('Load failed', 'bad');
-  }
+function switchView(view) {
+  currentView = view;
+  currentPage = 1;
+  $('ordersViewBtn').classList.toggle('active', view === 'orders');
+  $('tradingViewBtn').classList.toggle('active', view === 'trading');
+
+  $('ordersTable').style.display = view === 'orders' ? 'table' : 'none';
+  $('tradingTable').style.display = view === 'trading' ? 'table' : 'none';
+  $('cardList').style.display = view === 'orders' ? 'flex' : 'none';
+  $('tradeCardList').style.display = view === 'trading' ? 'flex' : 'none';
+  $('kpiGrid').style.display = view === 'orders' ? 'grid' : 'none';
+  $('tradeKpiGrid').style.display = view === 'trading' ? 'grid' : 'none';
+  $('paginationBar').style.display = view === 'orders' ? 'flex' : 'none';
+  $('tradePaginationBar').style.display = view === 'trading' ? 'flex' : 'none';
+  $('newOrderBtn').style.display = (view === 'orders' && ROLE !== 'customer') ? 'inline-flex' : 'none';
+  $('newTradeBtn').style.display = (view === 'trading' && ROLE !== 'customer') ? 'inline-flex' : 'none';
+  $('headerStats').style.display = view === 'orders' ? 'flex' : 'none';
+
+  renderAll();
 }
-$('refreshBtn').addEventListener('click', loadOrders);
 
-// Keyboard shortcuts
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    if ($('paymentSearchModal').classList.contains('open')) closePaymentSearch();
-    else if (typeof requestClosePanel === 'function') requestClosePanel();
-  }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    $('search').focus();
-  }
+/* ============ SEARCH ============ */
+let searchTimeout;
+$('search').addEventListener('input', (e) => {
+  currentSearchQuery = e.target.value.trim().toLowerCase();
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    currentPage = 1;
+    renderAll();
+  }, 300);
 });
+
+/* ============ REFRESH ============ */
+$('refreshBtn').addEventListener('click', async () => {
+  showToast('Refreshing data...', 'info', 1500);
+  await fetchOrders();
+  await fetchTrading();
+  renderAll();
+  showToast('Data refreshed', 'success', 2000);
+});
+
+/* ============ NEW ORDER ============ */
+$('newOrderBtn').addEventListener('click', () => {
+  if (window.openOrderPanel) window.openOrderPanel();
+});
+
+/* ============ NEW TRADE ============ */
+$('newTradeBtn').addEventListener('click', () => {
+  if (window.openTradePanel) window.openTradePanel();
+});
+
+/* ============ RECEIVE PAYMENT ============ */
+$('receivePaymentBtn').addEventListener('click', () => {
+  if (window.openPaymentSearch) window.openPaymentSearch();
+});
+
+/* ============ FILTERS ============ */
+function populateFilters() {
+  const customers = [...new Set(ORDERS.map(r => r[DK.customer]).filter(Boolean))].sort();
+  const sel = $('filterCustomer');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All customers</option>' + customers.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = current;
+}
+
+$('clearFiltersBtn').addEventListener('click', () => {
+  $('filterCustomer').value = '';
+  $('filterDateFrom').value = '';
+  $('filterDateTo').value = '';
+  $('filterSaleStatus').value = '';
+  currentPage = 1;
+  renderAll();
+});
+
+/* ============ PAGINATION ============ */
+function renderPagination() {
+  const filtered = getFilteredOrders();
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+
+  $('paginationBar').innerHTML = `
+    <button ${currentPage <= 1 ? 'disabled' : ''} onclick="window.changePage(${currentPage - 1})">Prev</button>
+    <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="window.changePage(${currentPage + 1})">Next</button>
+  `;
+}
+
+function renderTradePagination() {
+  const filtered = getFilteredTrading();
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+
+  $('tradePaginationBar').innerHTML = `
+    <button ${currentPage <= 1 ? 'disabled' : ''} onclick="window.changeTradePage(${currentPage - 1})">Prev</button>
+    <span class="page-info">Page ${currentPage} of ${totalPages}</span>
+    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="window.changeTradePage(${currentPage + 1})">Next</button>
+  `;
+}
+
+window.changePage = (p) => { currentPage = p; renderTable(); renderPagination(); };
+window.changeTradePage = (p) => { currentPage = p; renderTradeTable(); renderTradePagination(); };
+
+/* ============ FILTER LOGIC ============ */
+function getFilteredOrders() {
+  let rows = [...ORDERS];
+  const q = currentSearchQuery;
+  const customer = $('filterCustomer').value;
+  const from = $('filterDateFrom').value;
+  const to = $('filterDateTo').value;
+  const status = $('filterSaleStatus').value;
+
+  if (q) {
+    rows = rows.filter(r =>
+      Object.values(r).some(v => String(v).toLowerCase().includes(q))
+    );
+  }
+  if (customer) rows = rows.filter(r => r[DK.customer] === customer);
+  if (from) rows = rows.filter(r => r[DK.date] >= from);
+  if (to) rows = rows.filter(r => r[DK.date] <= to);
+  if (status) rows = rows.filter(r => (r[DK.paymentStatus] || 'Not Sold') === status);
+
+  return rows;
+}
+
+function getFilteredTrading() {
+  let rows = [...TRADING];
+  const q = currentSearchQuery;
+  if (q) {
+    rows = rows.filter(r =>
+      Object.values(r).some(v => String(v).toLowerCase().includes(q))
+    );
+  }
+  return rows;
+}
+
+/* ============ EXPORTS ============ */
+export { ROLE, currentPage, PAGE_SIZE, getFilteredOrders, getFilteredTrading, switchView, renderAll };
