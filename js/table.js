@@ -2,8 +2,6 @@
    VINÉRE — Table Renderers
    ============================================ */
 
-import { $, fmtDate, fmtMoney, highlightText } from "./utils.js";
-import { DK, SHEET_KEYS, currentPage, PAGE_SIZE, getFilteredOrders, getFilteredTrading } from "./app.js";
 
 export function renderTable() {
   const tbody = $('tbody');
@@ -163,3 +161,4 @@ function renderTradeCards(rows) {
     });
   });
 }
+Object.assign(window, { renderTable, renderTradeTable });
