@@ -1007,8 +1007,9 @@ mark.search-highlight {
   .controls { flex-wrap: wrap; }
   #search { width: 100%; }
 
-  .table-wrap { display: none; }
-  .card-list { display: flex; }
+  /* Table always visible; card list disabled */
+  .table-wrap { display: block; }
+  .card-list { display: none !important; }
 
   #panel, #tradePanel, #paymentSearchModal {
     width: 100%;
