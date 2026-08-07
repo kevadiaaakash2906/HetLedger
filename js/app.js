@@ -6,9 +6,9 @@ import { $, showToast } from "./utils.js";
 
 /* ============ AUTH / ROLE ============ */
 const PASSWORDS = {
-  staff:   'a5f3c6a11b7e2d9e4f8a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3',
-  seller:  'b6e4d7f2a9c1e5b8d3f7a2c6e0b4d8f1a3c7e9b2d6f0a4c8e2b6d0f4a8c2e6',
-  customer:'c7f5e8g3b0d2f6a9c4e8b1d5f9a3c7e1b5d9f3a7c1e5b9d3f7a1c5e9b3d7'
+  staff:   '25f885fa451c3c6b024fe23dbf834ceb2be6361316010ef348e7777faa78634c',
+  seller:  'c60a26e1e8094121dae3acccdfdb1fffeb616bcb2e3ae68f6b18c336e6e031d7',
+  customer:'9a900403ac313ba27a1bc81f0932652b8020dac92c234d98fa0b06bf0040ecfd'
 };
 
 let ROLE = null;
