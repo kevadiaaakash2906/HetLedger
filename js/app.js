@@ -92,13 +92,14 @@ var currentView = 'orders';
 var sortCol = 'sr';
 var sortDesc = false;
 var currentPage = 1;
-var PAGE_SIZE = 100;
+var PAGE_SIZE = 50;
 
 /* ============ INIT ============ */
 async function initApp() {
   await doFetchOrders();
   await doFetchTrading();
   renderAll();
+  initSwipeGestures();
 }
 
 /* ============ FETCH ORDERS ============ */
@@ -268,6 +269,50 @@ function renderTradePagination() {
 
 window.changePage = function(p) { currentPage = p; renderTable(); renderPagination(); };
 window.changeTradePage = function(p) { currentPage = p; renderTradeTable(); renderTradePagination(); };
+
+/* ============ SWIPE GESTURES (mobile) ============ */
+function initSwipeGestures() {
+  var touchStartX = 0;
+  var touchEndX = 0;
+  var minSwipe = 60;
+
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }, { passive: true });
+
+  document.addEventListener('touchend', function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }, { passive: true });
+
+  function handleSwipe() {
+    var diff = touchStartX - touchEndX;
+    if (Math.abs(diff) < minSwipe) return;
+
+    var filtered, totalPages;
+    if (currentView === 'orders') {
+      filtered = getFilteredOrders();
+      totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+      if (diff > 0 && currentPage < totalPages) {
+        changePage(currentPage + 1);
+        showToast('Page ' + currentPage, 'info', 800);
+      } else if (diff < 0 && currentPage > 1) {
+        changePage(currentPage - 1);
+        showToast('Page ' + currentPage, 'info', 800);
+      }
+    } else {
+      filtered = getFilteredTrading();
+      totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+      if (diff > 0 && currentPage < totalPages) {
+        changeTradePage(currentPage + 1);
+        showToast('Page ' + currentPage, 'info', 800);
+      } else if (diff < 0 && currentPage > 1) {
+        changeTradePage(currentPage - 1);
+        showToast('Page ' + currentPage, 'info', 800);
+      }
+    }
+  }
+}
 
 /* ============ FILTER LOGIC ============ */
 function getFilteredOrders() {
