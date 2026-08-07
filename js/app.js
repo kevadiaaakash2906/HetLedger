@@ -28,14 +28,29 @@ window.login = async function() {
       USER_HASH = hash;
 
       // Sign into Firebase Auth so Firestore rules allow access
+  window.login = async function() {
+  var input = $('passInput').value.trim();
+  if (!input) return;
+  var hash = await sha256(input);
+
+  for (var role in PASSWORDS) {
+    if (hash === PASSWORDS[role]) {
+      ROLE = role;
+      USER_HASH = hash;
+
+      // Sign into Firebase Auth (auto-create if first time)
       try {
         var email = role + '@vinere.local';
         await window.firebase.auth().signInWithEmailAndPassword(email, input);
-      } catch (authErr) {
-        console.error('Firebase auth failed', authErr);
-        $('loginError').textContent = 'Auth setup error — contact admin';
-        showToast('Firebase auth failed', 'error');
-        return;
+      } catch (err) {
+        if (err.code === 'auth/user-not-found') {
+          await window.firebase.auth().createUserWithEmailAndPassword(email, input);
+        } else {
+          console.error('Firebase auth failed', err);
+          $('loginError').textContent = 'Auth error — check console';
+          showToast('Firebase auth failed: ' + err.message, 'error');
+          return;
+        }
       }
 
       $('login').style.display = 'none';
