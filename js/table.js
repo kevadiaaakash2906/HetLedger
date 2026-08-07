@@ -33,8 +33,8 @@ function renderTable() {
       '<td class="num">' + (r[DK.netWt] || '') + '</td>' +
       '<td class="num">' + (r[DK.inCt] || '') + '</td>' +
       '<td class="num">' + (r[DK.colourStone] || '') + '</td>' +
-      '<td class="num">' + (r[DK.subTotal] ? '₹' + r[DK.subTotal] : '') + '</td>' +
-      '<td class="num">' + (r[DK.usd] ? '$' + r[DK.usd] : '') + '</td>' +
+      '<td class="num">' + (r[DK.subTotal] ? '₹' + Math.round(parseFloat(r[DK.subTotal]) || 0).toLocaleString('en-IN') : '') + '</td>' +
+      '<td class="num">' + (r[DK.usd] ? '$' + parseFloat(r[DK.usd]).toFixed(2) : '') + '</td>' +
       '<td>' + highlightText(r[DK.memoNo] || '', q) + '</td>' +
       '<td>' + highlightText(r[DK.soldTo] || '', q) + '</td>' +
       '<td class="num">' + (r[DK.salePrice] ? '$' + fmtMoney(r[DK.salePrice]) : '') + '</td>' +
@@ -64,8 +64,8 @@ function renderCards(rows) {
       '</div>' +
       '<div class="card-meta">' + (r[DK.customer] || '') + ' · ' + fmtDate(r[DK.date]) + ' · Sr. ' + r[DK.sr] + '</div>' +
       '<div class="card-row"><span class="card-label">Net Wt</span><span class="card-value">' + (r[DK.netWt] || '') + 'g</span></div>' +
-      '<div class="card-row"><span class="card-label">Sub Total</span><span class="card-value">₹' + (r[DK.subTotal] || '') + '</span></div>' +
-      '<div class="card-row"><span class="card-label">USD</span><span class="card-value">$' + (r[DK.usd] || '') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Sub Total</span><span class="card-value">₹' + (r[DK.subTotal] ? Math.round(parseFloat(r[DK.subTotal]) || 0).toLocaleString('en-IN') : '') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">USD</span><span class="card-value">$' + (r[DK.usd] ? parseFloat(r[DK.usd]).toFixed(2) : '') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Sold To</span><span class="card-value">' + (r[DK.soldTo] || '—') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Sale Price</span><span class="card-value">$' + (r[DK.salePrice] || '') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Balance</span><span class="card-value">$' + (r[DK.balanceDue] || '0') + '</span></div>' +
