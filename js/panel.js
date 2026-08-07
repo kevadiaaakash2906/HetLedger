@@ -2,23 +2,21 @@
    VINÉRE — Order Panel (Create / Edit)
    ============================================ */
 
-
-
-let editingId = null;
-let currentInstallments = [];
-let readOnly = false;
+var editingId = null;
+var currentInstallments = [];
+var readOnly = false;
 
 window.openOrderPanel = function(id) {
   editingId = id || null;
   currentInstallments = [];
 
-  const panel = $('panel');
-  const overlay = $('overlay');
+  var panel = $('panel');
+  var overlay = $('overlay');
 
   // Reset fields
   ['f_customer','f_style','f_date','f_grossWt','f_netWt','f_diaQty','f_inCt',
    'f_colourStone','f_multiplier','f_diamAmount','f_lCharges','f_memoNo',
-   'f_soldTo','f_salePrice','f_dateSold'].forEach(id => $(id).value = '');
+   'f_soldTo','f_salePrice','f_dateSold'].forEach(function(fid) { $(fid).value = ''; });
   $('f_multiplier').value = '0.595';
   $('f_lCharges').value = '900';
 
@@ -29,11 +27,10 @@ window.openOrderPanel = function(id) {
   $('saveMsg').textContent = '';
   $('saveMsg').style.color = '';
 
-  // Hide all errors
-  document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+  document.querySelectorAll('.field-error').forEach(function(el) { el.textContent = ''; });
 
   if (id) {
-    const order = ORDERS.find(r => r._id === id);
+    var order = ORDERS.find(function(r) { return r._id === id; });
     if (!order) return;
 
     $('panelTitle').textContent = 'Edit Order #' + order[DK.sr];
@@ -53,9 +50,7 @@ window.openOrderPanel = function(id) {
     $('f_salePrice').value = order[DK.salePrice] || '';
     $('f_dateSold').value = order[DK.dateSold] || '';
 
-    try {
-      currentInstallments = JSON.parse(order[DK.paymentLog] || '[]');
-    } catch { currentInstallments = []; }
+    try { currentInstallments = JSON.parse(order[DK.paymentLog] || '[]'); } catch(e) { currentInstallments = []; }
     renderInstallments();
 
     $('deleteBtn').style.display = (ROLE === 'staff') ? 'inline-flex' : 'none';
@@ -75,8 +70,8 @@ window.openOrderPanel = function(id) {
 };
 
 function setReadOnly(ro) {
-  const inputs = panel.querySelectorAll('input, select');
-  inputs.forEach(inp => inp.disabled = ro);
+  var inputs = panel.querySelectorAll('input, select');
+  inputs.forEach(function(inp) { inp.disabled = ro; });
   $('saveBtn').style.display = ro ? 'none' : 'block';
   $('addInstallmentBtn').style.display = ro ? 'none' : 'block';
 }
@@ -91,22 +86,22 @@ function closePanel() {
 }
 
 /* ============ LIVE PREVIEW ============ */
-['f_netWt','f_multiplier','f_lCharges','f_diamAmount','f_salePrice'].forEach(id => {
+['f_netWt','f_multiplier','f_lCharges','f_diamAmount','f_salePrice'].forEach(function(id) {
   $(id).addEventListener('input', updatePreview);
 });
 
 function updatePreview() {
-  const netWt = parseFloat($('f_netWt').value) || 0;
-  const multiplier = parseFloat($('f_multiplier').value) || 0.595;
-  const lCharges = parseFloat($('f_lCharges').value) || 900;
-  const diamAmount = parseFloat($('f_diamAmount').value) || 0;
-  const salePrice = parseFloat($('f_salePrice').value) || 0;
+  var netWt = parseFloat($('f_netWt').value) || 0;
+  var multiplier = parseFloat($('f_multiplier').value) || 0.595;
+  var lCharges = parseFloat($('f_lCharges').value) || 900;
+  var diamAmount = parseFloat($('f_diamAmount').value) || 0;
+  var salePrice = parseFloat($('f_salePrice').value) || 0;
 
-  const pgWt = netWt * multiplier;
-  const goldAmt = pgWt * 16000;
-  const laborAmt = netWt * lCharges;
-  const subTotal = goldAmt + diamAmount + laborAmt;
-  const usd = subTotal / 94;
+  var pgWt = netWt * multiplier;
+  var goldAmt = pgWt * 16000;
+  var laborAmt = netWt * lCharges;
+  var subTotal = goldAmt + diamAmount + laborAmt;
+  var usd = subTotal / 94;
 
   $('prev_pgWt').textContent = pgWt ? pgWt.toFixed(3) + ' g' : '—';
   $('prev_goldAmt').textContent = goldAmt ? '₹' + Math.round(goldAmt).toLocaleString('en-IN') : '—';
@@ -114,10 +109,9 @@ function updatePreview() {
   $('prev_subTotal').textContent = subTotal ? '₹' + Math.round(subTotal).toLocaleString('en-IN') : '—';
   $('prev_usd').textContent = usd ? '$' + usd.toFixed(2) : '—';
 
-  // Payment preview
-  const totalPaid = currentInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
-  const balance = salePrice ? salePrice - totalPaid : 0;
-  let status = 'Not Sold';
+  var totalPaid = currentInstallments.reduce(function(s, i) { return s + (parseFloat(i.amount) || 0); }, 0);
+  var balance = salePrice ? salePrice - totalPaid : 0;
+  var status = 'Not Sold';
   if (salePrice) {
     if (totalPaid >= salePrice) status = 'Paid';
     else if (totalPaid > 0) status = 'Partial';
@@ -129,21 +123,15 @@ function updatePreview() {
   $('prev_paymentStatus').textContent = status;
 }
 
-function fmtMoney(n) {
-  const num = parseFloat(n);
-  if (isNaN(num)) return '0';
-  return num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 /* ============ INSTALLMENTS ============ */
-$('addInstallmentBtn').addEventListener('click', () => {
-  const amt = parseFloat($('f_instAmount').value);
-  const date = $('f_instDate').value;
+$('addInstallmentBtn').addEventListener('click', function() {
+  var amt = parseFloat($('f_instAmount').value);
+  var date = $('f_instDate').value;
   if (!amt || amt <= 0 || !date) {
     $('err_f_installment').textContent = 'Enter valid amount and date';
     return;
   }
-  currentInstallments.push({ amount: amt, date });
+  currentInstallments.push({ amount: amt, date: date });
   $('f_instAmount').value = '';
   $('f_instDate').value = '';
   $('err_f_installment').textContent = '';
@@ -152,14 +140,14 @@ $('addInstallmentBtn').addEventListener('click', () => {
 });
 
 function renderInstallments() {
-  const list = $('installmentsList');
+  var list = $('installmentsList');
   if (!currentInstallments.length) { list.innerHTML = ''; return; }
-  list.innerHTML = currentInstallments.map((inst, i) => `
-    <div class="installment-item">
-      <span>$${fmtMoney(inst.amount)} · ${inst.date}</span>
-      <button onclick="window.removeInst(${i})">&times;</button>
-    </div>
-  `).join('');
+  list.innerHTML = currentInstallments.map(function(inst, i) {
+    return '<div class="installment-item">' +
+      '<span>$' + fmtMoney(inst.amount) + ' · ' + inst.date + '</span>' +
+      '<button onclick="window.removeInst(' + i + ')">&times;</button>' +
+      '</div>';
+  }).join('');
 }
 
 window.removeInst = function(idx) {
@@ -169,23 +157,22 @@ window.removeInst = function(idx) {
 };
 
 /* ============ SAVE ============ */
-$('saveBtn').addEventListener('click', async () => {
+$('saveBtn').addEventListener('click', async function() {
   if (readOnly) return;
 
-  // Validation
-  let valid = true;
-  document.querySelectorAll('.field-error').forEach(el => el.textContent = '');
+  var valid = true;
+  document.querySelectorAll('.field-error').forEach(function(el) { el.textContent = ''; });
 
   if (!$('f_customer').value.trim()) { $('err_f_customer').textContent = 'Required'; valid = false; }
   if (!$('f_style').value.trim()) { $('err_f_style').textContent = 'Required'; valid = false; }
   if (!$('f_netWt').value.trim()) { $('err_f_netWt').textContent = 'Required'; valid = false; }
 
-  const netWt = parseFloat($('f_netWt').value) || 0;
-  const grossWt = parseFloat($('f_grossWt').value) || 0;
+  var netWt = parseFloat($('f_netWt').value) || 0;
+  var grossWt = parseFloat($('f_grossWt').value) || 0;
   if (grossWt && netWt > grossWt) { $('err_f_netWt').textContent = 'Net Wt cannot exceed Gross Wt'; valid = false; }
 
-  const salePrice = parseFloat($('f_salePrice').value) || 0;
-  const totalPaid = currentInstallments.reduce((s, i) => s + (parseFloat(i.amount) || 0), 0);
+  var salePrice = parseFloat($('f_salePrice').value) || 0;
+  var totalPaid = currentInstallments.reduce(function(s, i) { return s + (parseFloat(i.amount) || 0); }, 0);
   if (salePrice && totalPaid > salePrice) { $('err_f_installment').textContent = 'Payments exceed sale price'; valid = false; }
 
   if (!valid) {
@@ -197,64 +184,63 @@ $('saveBtn').addEventListener('click', async () => {
 
   $('saveMsg').textContent = '';
 
-  const net = parseFloat($('f_netWt').value) || 0;
-  const mult = parseFloat($('f_multiplier').value) || 0.595;
-  const lCharge = parseFloat($('f_lCharges').value) || 900;
-  const diam = parseFloat($('f_diamAmount').value) || 0;
-  const pgWt = net * mult;
-  const goldAmt = pgWt * 16000;
-  const laborAmt = net * lCharge;
-  const subTotal = goldAmt + diam + laborAmt;
-  const usd = subTotal / 94;
+  var net = parseFloat($('f_netWt').value) || 0;
+  var mult = parseFloat($('f_multiplier').value) || 0.595;
+  var lCharge = parseFloat($('f_lCharges').value) || 900;
+  var diam = parseFloat($('f_diamAmount').value) || 0;
+  var pgWt = net * mult;
+  var goldAmt = pgWt * 16000;
+  var laborAmt = net * lCharge;
+  var subTotal = goldAmt + diam + laborAmt;
+  var usd = subTotal / 94;
 
-  let status = 'Not Sold';
+  var status = 'Not Sold';
   if (salePrice) {
     if (totalPaid >= salePrice) status = 'Paid';
     else if (totalPaid > 0) status = 'Partial';
     else status = 'Unpaid';
   }
 
-  const data = {
-    [DK.customer]: $('f_customer').value.trim().toUpperCase(),
-    [DK.style]: $('f_style').value.trim().toUpperCase(),
-    [DK.date]: $('f_date').value,
-    [DK.grossWt]: $('f_grossWt').value || '',
-    [DK.netWt]: $('f_netWt').value,
-    [DK.diaQty]: $('f_diaQty').value || '',
-    [DK.inCt]: $('f_inCt').value || '',
-    [DK.colourStone]: $('f_colourStone').value || '',
-    [DK.multiplier]: mult.toString(),
-    [DK.pgWt]: pgWt.toFixed(3),
-    [DK.goldAmt]: Math.round(goldAmt).toString(),
-    [DK.diamAmount]: diam ? diam.toString() : '',
-    [DK.lCharges]: lCharge.toString(),
-    [DK.laborAmt]: Math.round(laborAmt).toString(),
-    [DK.subTotal]: Math.round(subTotal).toString(),
-    [DK.usd]: usd.toFixed(2),
-    [DK.memoNo]: $('f_memoNo').value.trim().toUpperCase(),
-    [DK.soldTo]: $('f_soldTo').value.trim(),
-    [DK.salePrice]: salePrice ? salePrice.toString() : '',
-    [DK.dateSold]: $('f_dateSold').value || '',
-    [DK.amountPaid]: totalPaid.toString(),
-    [DK.balanceDue]: (salePrice - totalPaid).toString(),
-    [DK.paymentStatus]: status,
-    [DK.paymentLog]: JSON.stringify(currentInstallments)
-  };
+  var data = {};
+  data[DK.customer] = $('f_customer').value.trim().toUpperCase();
+  data[DK.style] = $('f_style').value.trim().toUpperCase();
+  data[DK.date] = $('f_date').value;
+  data[DK.grossWt] = $('f_grossWt').value || '';
+  data[DK.netWt] = $('f_netWt').value;
+  data[DK.diaQty] = $('f_diaQty').value || '';
+  data[DK.inCt] = $('f_inCt').value || '';
+  data[DK.colourStone] = $('f_colourStone').value || '';
+  data[DK.multiplier] = mult.toString();
+  data[DK.pgWt] = pgWt.toFixed(3);
+  data[DK.goldAmt] = Math.round(goldAmt).toString();
+  data[DK.diamAmount] = diam ? diam.toString() : '';
+  data[DK.lCharges] = lCharge.toString();
+  data[DK.laborAmt] = Math.round(laborAmt).toString();
+  data[DK.subTotal] = Math.round(subTotal).toString();
+  data[DK.usd] = usd.toFixed(2);
+  data[DK.memoNo] = $('f_memoNo').value.trim().toUpperCase();
+  data[DK.soldTo] = $('f_soldTo').value.trim();
+  data[DK.salePrice] = salePrice ? salePrice.toString() : '';
+  data[DK.dateSold] = $('f_dateSold').value || '';
+  data[DK.amountPaid] = totalPaid.toString();
+  data[DK.balanceDue] = (salePrice - totalPaid).toString();
+  data[DK.paymentStatus] = status;
+  data[DK.paymentLog] = JSON.stringify(currentInstallments);
 
   try {
     if (editingId) {
-      const existing = ORDERS.find(r => r._id === editingId);
+      var existing = ORDERS.find(function(r) { return r._id === editingId; });
       data[DK.sr] = existing[DK.sr];
       await window.updateOrder(editingId, data);
-      showToast(`Order #${data[DK.sr]} updated successfully`, 'success');
+      showToast('Order #' + data[DK.sr] + ' updated successfully', 'success');
     } else {
-      const nextSr = ORDERS.length > 0 ? Math.max(...ORDERS.map(r => parseInt(r[DK.sr]) || 0)) + 1 : 1;
+      var nextSr = ORDERS.length > 0 ? Math.max.apply(null, ORDERS.map(function(r) { return parseInt(r[DK.sr]) || 0; })) + 1 : 1;
       data[DK.sr] = nextSr.toString();
       await window.addOrder(data);
-      showToast(`Order #${nextSr} created successfully`, 'success');
+      showToast('Order #' + nextSr + ' created successfully', 'success');
     }
     closePanel();
-    await fetchOrders();
+    await doFetchOrders();
     renderAll();
   } catch (err) {
     console.error(err);
@@ -264,18 +250,18 @@ $('saveBtn').addEventListener('click', async () => {
 });
 
 /* ============ DELETE ============ */
-$('deleteBtn').addEventListener('click', async () => {
+$('deleteBtn').addEventListener('click', async function() {
   if (!editingId || ROLE !== 'staff') return;
   if (!confirm('Delete this order permanently?')) return;
 
-  const order = ORDERS.find(r => r._id === editingId);
-  const srNo = order ? order[DK.sr] : '';
+  var order = ORDERS.find(function(r) { return r._id === editingId; });
+  var srNo = order ? order[DK.sr] : '';
 
   try {
     await window.deleteOrder(editingId, srNo);
     showToast('Order deleted', 'success');
     closePanel();
-    await fetchOrders();
+    await doFetchOrders();
     renderAll();
   } catch (err) {
     console.error(err);

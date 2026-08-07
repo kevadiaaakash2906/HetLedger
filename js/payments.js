@@ -2,7 +2,6 @@
    VINÉRE — Receive Payment Modal
    ============================================ */
 
-
 window.openPaymentSearch = function() {
   $('paymentSearchOverlay').style.display = 'block';
   $('paymentSearchModal').classList.add('open');
@@ -19,21 +18,21 @@ function closePaymentSearch() {
   $('paymentSearchOverlay').style.display = 'none';
 }
 
-$('paySearchInput').addEventListener('input', (e) => {
+$('paySearchInput').addEventListener('input', function(e) {
   renderPayResults(e.target.value.trim().toLowerCase());
 });
 
 function renderPayResults(query) {
-  const container = $('payResults');
-  let rows = ORDERS.filter(r => {
-    const status = (r[DK.paymentStatus] || 'Not Sold').trim();
+  var container = $('payResults');
+  var rows = ORDERS.filter(function(r) {
+    var status = (r[DK.paymentStatus] || 'Not Sold').trim();
     return status !== 'Paid' && status !== 'Not Sold';
   });
 
   if (query) {
-    rows = rows.filter(r =>
-      Object.values(r).some(v => String(v).toLowerCase().includes(query))
-    );
+    rows = rows.filter(function(r) {
+      return Object.values(r).some(function(v) { return String(v).toLowerCase().includes(query); });
+    });
   }
 
   if (!rows.length) {
@@ -41,58 +40,56 @@ function renderPayResults(query) {
     return;
   }
 
-  container.innerHTML = rows.map(r => {
-    const balance = parseFloat(r[DK.balanceDue]) || 0;
-    return `
-    <div class="pay-result-item" data-id="${r._id}">
-      <div class="pay-result-header">
-        <span class="pay-result-title">${r[DK.style]} · ${r[DK.customer]}</span>
-        <span style="color:var(--warning);font-family:var(--font-mono)">$${fmtMoney(balance)}</span>
-      </div>
-      <div class="pay-result-meta">Sr. ${r[DK.sr]} · Sold To: ${r[DK.soldTo] || '—'} · Status: ${r[DK.paymentStatus]}</div>
-    </div>`;
+  container.innerHTML = rows.map(function(r) {
+    var balance = parseFloat(r[DK.balanceDue]) || 0;
+    return '<div class="pay-result-item" data-id="' + r._id + '">' +
+      '<div class="pay-result-header">' +
+      '<span class="pay-result-title">' + r[DK.style] + ' · ' + r[DK.customer] + '</span>' +
+      '<span style="color:var(--warning);font-family:var(--font-mono)">$' + fmtMoney(balance) + '</span>' +
+      '</div>' +
+      '<div class="pay-result-meta">Sr. ' + r[DK.sr] + ' · Sold To: ' + (r[DK.soldTo] || '—') + ' · Status: ' + r[DK.paymentStatus] + '</div>' +
+      '</div>';
   }).join('');
 
-  container.querySelectorAll('.pay-result-item').forEach(item => {
-    item.addEventListener('click', () => openPaymentForm(item.dataset.id));
+  container.querySelectorAll('.pay-result-item').forEach(function(item) {
+    item.addEventListener('click', function() { openPaymentForm(item.dataset.id); });
   });
 }
 
 function openPaymentForm(id) {
   closePaymentSearch();
-  const order = ORDERS.find(r => r._id === id);
+  var order = ORDERS.find(function(r) { return r._id === id; });
   if (!order) return;
 
-  const amount = prompt(`Record payment for Order #${order[DK.sr]} — ${order[DK.style]}\nBalance Due: $${fmtMoney(order[DK.balanceDue])}\n\nEnter amount received:`);
+  var amount = prompt('Record payment for Order #' + order[DK.sr] + ' — ' + order[DK.style] + '\nBalance Due: $' + fmtMoney(order[DK.balanceDue]) + '\n\nEnter amount received:');
   if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) return;
 
-  const date = prompt('Payment date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
+  var date = prompt('Payment date (YYYY-MM-DD):', new Date().toISOString().split('T')[0]);
   if (!date) return;
 
-  let installments = [];
-  try { installments = JSON.parse(order[DK.paymentLog] || '[]'); } catch { installments = []; }
-  installments.push({ amount: parseFloat(amount), date });
+  var installments = [];
+  try { installments = JSON.parse(order[DK.paymentLog] || '[]'); } catch(e) { installments = []; }
+  installments.push({ amount: parseFloat(amount), date: date });
 
-  const totalPaid = installments.reduce((s, i) => s + i.amount, 0);
-  const salePrice = parseFloat(order[DK.salePrice]) || 0;
-  const balance = salePrice - totalPaid;
+  var totalPaid = installments.reduce(function(s, i) { return s + i.amount; }, 0);
+  var salePrice = parseFloat(order[DK.salePrice]) || 0;
+  var balance = salePrice - totalPaid;
 
-  let status = 'Unpaid';
+  var status = 'Unpaid';
   if (totalPaid >= salePrice) status = 'Paid';
   else if (totalPaid > 0) status = 'Partial';
 
-  const data = {
-    ...order,
-    [DK.amountPaid]: totalPaid.toString(),
-    [DK.balanceDue]: balance.toString(),
-    [DK.paymentStatus]: status,
-    [DK.paymentLog]: JSON.stringify(installments)
-  };
+  var data = {};
+  for (var k in order) data[k] = order[k];
+  data[DK.amountPaid] = totalPaid.toString();
+  data[DK.balanceDue] = balance.toString();
+  data[DK.paymentStatus] = status;
+  data[DK.paymentLog] = JSON.stringify(installments);
 
-  window.updateOrder(id, data).then(() => {
-    showToast(`Payment of $${fmtMoney(amount)} recorded for order #${order[DK.sr]}`, 'success');
-    return fetchOrders();
-  }).then(() => renderAll()).catch(err => {
+  window.updateOrder(id, data).then(function() {
+    showToast('Payment of $' + fmtMoney(amount) + ' recorded for order #' + order[DK.sr], 'success');
+    return doFetchOrders();
+  }).then(function() { renderAll(); }).catch(function(err) {
     console.error(err);
     showToast('Failed to record payment', 'error');
   });

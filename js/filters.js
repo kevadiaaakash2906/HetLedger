@@ -2,9 +2,7 @@
    VINÉRE — Filters
    ============================================ */
 
-
-
-$('filterCustomer').addEventListener('change', () => { window.currentPage = 1; renderAll(); });
-$('filterDateFrom').addEventListener('change', () => { window.currentPage = 1; renderAll(); });
-$('filterDateTo').addEventListener('change', () => { window.currentPage = 1; renderAll(); });
-$('filterSaleStatus').addEventListener('change', () => { window.currentPage = 1; renderAll(); });
+$('filterCustomer').addEventListener('change', function() { window.currentPage = 1; renderAll(); });
+$('filterDateFrom').addEventListener('change', function() { window.currentPage = 1; renderAll(); });
+$('filterDateTo').addEventListener('change', function() { window.currentPage = 1; renderAll(); });
+$('filterSaleStatus').addEventListener('change', function() { window.currentPage = 1; renderAll(); });

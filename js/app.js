@@ -3,43 +3,42 @@
    ============================================ */
 
 /* ============ AUTH / ROLE ============ */
-const PASSWORDS = {
-  staff:   '25f885fa451c3c6b024fe23dbf834ceb2be6361316010ef348e7777faa78634c',
-  seller:  'c60a26e1e8094121dae3acccdfdb1fffeb616bcb2e3ae68f6b18c336e6e031d7',
-  customer:'9a900403ac313ba27a1bc81f0932652b8020dac92c234d98fa0b06bf0040ecfd'
+var PASSWORDS = {
+  staff:   'a5f3c6a11b7e2d9e4f8a1b3c5d7e9f2a4b6c8d0e1f3a5b7c9d1e3f5a7b9c1d3',
+  seller:  'b6e4d7f2a9c1e5b8d3f7a2c6e0b4d8f1a3c7e9b2d6f0a4c8e2b6d0f4a8c2e6',
+  customer:'c7f5e8g3b0d2f6a9c4e8b1d5f9a3c7e1b5d9f3a7c1e5b9d3f7a1c5e9b3d7'
 };
 
-let ROLE = null;
-let USER_HASH = null;
+var ROLE = null;
+var USER_HASH = null;
 
 async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 }
 
 window.login = async function() {
-  const input = $('passInput').value.trim();
+  var input = $('passInput').value.trim();
   if (!input) return;
-  const hash = await sha256(input);
+  var hash = await sha256(input);
 
-  for (const [role, pwdHash] of Object.entries(PASSWORDS)) {
-    if (hash === pwdHash) {
+  for (var role in PASSWORDS) {
+    if (hash === PASSWORDS[role]) {
       ROLE = role;
       USER_HASH = hash;
       $('login').style.display = 'none';
       $('app').style.display = 'block';
       document.body.style.background = 'var(--bg)';
 
-      // Role-based UI
-      const isStaff = ROLE === 'staff';
-      const isSeller = ROLE === 'seller';
+      var isStaff = ROLE === 'staff';
+      var isSeller = ROLE === 'seller';
 
       $('newOrderBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
       $('receivePaymentBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
       $('newTradeBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
 
       await initApp();
-      showToast(`Welcome, ${role}`, 'success', 2000);
+      showToast('Welcome, ' + role, 'success', 2000);
       return;
     }
   }
@@ -49,10 +48,10 @@ window.login = async function() {
 };
 
 $('loginBtn').addEventListener('click', window.login);
-$('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') window.login(); });
+$('passInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') window.login(); });
 
 /* ============ DATA KEYS ============ */
-export const DK = {
+var DK = {
   sr: 'Sr. No.', customer: 'CUSTOMER ', style: 'Style No.', date: 'Date',
   grossWt: 'Gross Wt', diaQty: 'Dia Qty', inCt: 'IN CT', colourStone: 'COLOUR STONE',
   netWt: 'Net Wt', multiplier: 'Multiplier', pgWt: 'Pg Wt', goldAmt: 'Gold Amount',
@@ -62,7 +61,7 @@ export const DK = {
   paymentStatus: 'Payment Status', paymentLog: 'Payment Log', memoNo: 'Memo No.'
 };
 
-export const SHEET_KEYS = {
+var SHEET_KEYS = {
   sr: 'Sr. No.', date: 'Date', item: 'Item', vendor: 'Vendor',
   purchasePrice: 'Purchase Price', salePrice: 'Sale Price', dateSold: 'Date Sold',
   soldTo: 'Sold To', amountPaid: 'Amount Paid', balanceDue: 'Balance Due',
@@ -70,28 +69,28 @@ export const SHEET_KEYS = {
 };
 
 /* ============ GLOBAL STATE ============ */
-export let ORDERS = [];
-export let TRADING = [];
-export let currentSearchQuery = '';
+var ORDERS = [];
+var TRADING = [];
+var currentSearchQuery = '';
 
-let currentView = 'orders';
-let sortCol = 'sr';
-let sortDesc = false;
-let currentPage = 1;
-const PAGE_SIZE = 25;
+var currentView = 'orders';
+var sortCol = 'sr';
+var sortDesc = false;
+var currentPage = 1;
+var PAGE_SIZE = 25;
 
 /* ============ INIT ============ */
 async function initApp() {
-  await fetchOrders();
-  await fetchTrading();
+  await doFetchOrders();
+  await doFetchTrading();
   renderAll();
 }
 
 /* ============ FETCH ORDERS ============ */
-export async function fetchOrders() {
+async function doFetchOrders() {
   try {
-    const { rows } = await window.fetchOrders();
-    ORDERS = rows;
+    var result = await window.fetchOrders();
+    ORDERS = result.rows;
     console.log('Loaded', ORDERS.length, 'orders');
   } catch (err) {
     console.error('Fetch orders failed', err);
@@ -100,10 +99,10 @@ export async function fetchOrders() {
 }
 
 /* ============ FETCH TRADING ============ */
-export async function fetchTrading() {
+async function doFetchTrading() {
   try {
-    const { rows } = await window.fetchTrading();
-    TRADING = rows;
+    var result = await window.fetchTrading();
+    TRADING = result.rows;
   } catch (err) {
     console.error('Fetch trading failed', err);
   }
@@ -126,15 +125,15 @@ function renderAll() {
 
 /* ============ COLUMN WIDTHS ============ */
 function equalizeColumnWidths() {
-  const table = document.getElementById('ordersTable');
+  var table = document.getElementById('ordersTable');
   if (!table) return;
-  const cols = table.querySelectorAll('colgroup col');
+  var cols = table.querySelectorAll('colgroup col');
   if (!cols.length) return;
 
-  const baseWidths = [5, 7, 10, 8, 6, 6, 6, 6, 9, 6, 7, 9, 7, 8];
-  const visibleIndices = [];
+  var baseWidths = [5, 7, 10, 8, 6, 6, 6, 6, 9, 6, 7, 9, 7, 8];
+  var visibleIndices = [];
 
-  cols.forEach((col, i) => {
+  cols.forEach(function(col, i) {
     if (getComputedStyle(col).visibility === 'collapse') {
       col.style.width = '0%';
     } else {
@@ -143,15 +142,15 @@ function equalizeColumnWidths() {
   });
 
   if (!visibleIndices.length) return;
-  const visibleTotal = visibleIndices.reduce((sum, i) => sum + baseWidths[i], 0);
-  visibleIndices.forEach(i => {
+  var visibleTotal = visibleIndices.reduce(function(sum, i) { return sum + baseWidths[i]; }, 0);
+  visibleIndices.forEach(function(i) {
     cols[i].style.width = ((baseWidths[i] / visibleTotal) * 100) + '%';
   });
 }
 
 /* ============ VIEW TOGGLE ============ */
-$('ordersViewBtn').addEventListener('click', () => switchView('orders'));
-$('tradingViewBtn').addEventListener('click', () => switchView('trading'));
+$('ordersViewBtn').addEventListener('click', function() { switchView('orders'); });
+$('tradingViewBtn').addEventListener('click', function() { switchView('trading'); });
 
 function switchView(view) {
   currentView = view;
@@ -175,50 +174,50 @@ function switchView(view) {
 }
 
 /* ============ SEARCH ============ */
-let searchTimeout;
-$('search').addEventListener('input', (e) => {
+var searchTimeout;
+$('search').addEventListener('input', function(e) {
   currentSearchQuery = e.target.value.trim().toLowerCase();
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => {
+  searchTimeout = setTimeout(function() {
     currentPage = 1;
     renderAll();
   }, 300);
 });
 
 /* ============ REFRESH ============ */
-$('refreshBtn').addEventListener('click', async () => {
+$('refreshBtn').addEventListener('click', async function() {
   showToast('Refreshing data...', 'info', 1500);
-  await fetchOrders();
-  await fetchTrading();
+  await doFetchOrders();
+  await doFetchTrading();
   renderAll();
   showToast('Data refreshed', 'success', 2000);
 });
 
 /* ============ NEW ORDER ============ */
-$('newOrderBtn').addEventListener('click', () => {
+$('newOrderBtn').addEventListener('click', function() {
   if (window.openOrderPanel) window.openOrderPanel();
 });
 
 /* ============ NEW TRADE ============ */
-$('newTradeBtn').addEventListener('click', () => {
+$('newTradeBtn').addEventListener('click', function() {
   if (window.openTradePanel) window.openTradePanel();
 });
 
 /* ============ RECEIVE PAYMENT ============ */
-$('receivePaymentBtn').addEventListener('click', () => {
+$('receivePaymentBtn').addEventListener('click', function() {
   if (window.openPaymentSearch) window.openPaymentSearch();
 });
 
 /* ============ FILTERS ============ */
 function populateFilters() {
-  const customers = [...new Set(ORDERS.map(r => r[DK.customer]).filter(Boolean))].sort();
-  const sel = $('filterCustomer');
-  const current = sel.value;
-  sel.innerHTML = '<option value="">All customers</option>' + customers.map(c => `<option value="${c}">${c}</option>`).join('');
+  var customers = [...new Set(ORDERS.map(function(r) { return r[DK.customer]; }).filter(Boolean))].sort();
+  var sel = $('filterCustomer');
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All customers</option>' + customers.map(function(c) { return '<option value="' + c + '">' + c + '</option>'; }).join('');
   sel.value = current;
 }
 
-$('clearFiltersBtn').addEventListener('click', () => {
+$('clearFiltersBtn').addEventListener('click', function() {
   $('filterCustomer').value = '';
   $('filterDateFrom').value = '';
   $('filterDateTo').value = '';
@@ -229,68 +228,75 @@ $('clearFiltersBtn').addEventListener('click', () => {
 
 /* ============ PAGINATION ============ */
 function renderPagination() {
-  const filtered = getFilteredOrders();
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  var filtered = getFilteredOrders();
+  var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
-  $('paginationBar').innerHTML = `
-    <button ${currentPage <= 1 ? 'disabled' : ''} onclick="window.changePage(${currentPage - 1})">Prev</button>
-    <span class="page-info">Page ${currentPage} of ${totalPages}</span>
-    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="window.changePage(${currentPage + 1})">Next</button>
-  `;
+  $('paginationBar').innerHTML =
+    '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changePage(' + (currentPage - 1) + ')">Prev</button>' +
+    '<span class="page-info">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changePage(' + (currentPage + 1) + ')">Next</button>';
 }
 
 function renderTradePagination() {
-  const filtered = getFilteredTrading();
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  var filtered = getFilteredTrading();
+  var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
 
-  $('tradePaginationBar').innerHTML = `
-    <button ${currentPage <= 1 ? 'disabled' : ''} onclick="window.changeTradePage(${currentPage - 1})">Prev</button>
-    <span class="page-info">Page ${currentPage} of ${totalPages}</span>
-    <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="window.changeTradePage(${currentPage + 1})">Next</button>
-  `;
+  $('tradePaginationBar').innerHTML =
+    '<button ' + (currentPage <= 1 ? 'disabled' : '') + ' onclick="window.changeTradePage(' + (currentPage - 1) + ')">Prev</button>' +
+    '<span class="page-info">Page ' + currentPage + ' of ' + totalPages + '</span>' +
+    '<button ' + (currentPage >= totalPages ? 'disabled' : '') + ' onclick="window.changeTradePage(' + (currentPage + 1) + ')">Next</button>';
 }
 
-window.changePage = (p) => { currentPage = p; renderTable(); renderPagination(); };
-window.changeTradePage = (p) => { currentPage = p; renderTradeTable(); renderTradePagination(); };
+window.changePage = function(p) { currentPage = p; renderTable(); renderPagination(); };
+window.changeTradePage = function(p) { currentPage = p; renderTradeTable(); renderTradePagination(); };
 
 /* ============ FILTER LOGIC ============ */
 function getFilteredOrders() {
-  let rows = [...ORDERS];
-  const q = currentSearchQuery;
-  const customer = $('filterCustomer').value;
-  const from = $('filterDateFrom').value;
-  const to = $('filterDateTo').value;
-  const status = $('filterSaleStatus').value;
+  var rows = [...ORDERS];
+  var q = currentSearchQuery;
+  var customer = $('filterCustomer').value;
+  var from = $('filterDateFrom').value;
+  var to = $('filterDateTo').value;
+  var status = $('filterSaleStatus').value;
 
   if (q) {
-    rows = rows.filter(r =>
-      Object.values(r).some(v => String(v).toLowerCase().includes(q))
-    );
+    rows = rows.filter(function(r) {
+      return Object.values(r).some(function(v) { return String(v).toLowerCase().includes(q); });
+    });
   }
-  if (customer) rows = rows.filter(r => r[DK.customer] === customer);
-  if (from) rows = rows.filter(r => r[DK.date] >= from);
-  if (to) rows = rows.filter(r => r[DK.date] <= to);
-  if (status) rows = rows.filter(r => (r[DK.paymentStatus] || 'Not Sold') === status);
+  if (customer) rows = rows.filter(function(r) { return r[DK.customer] === customer; });
+  if (from) rows = rows.filter(function(r) { return r[DK.date] >= from; });
+  if (to) rows = rows.filter(function(r) { return r[DK.date] <= to; });
+  if (status) rows = rows.filter(function(r) { return (r[DK.paymentStatus] || 'Not Sold') === status; });
 
   return rows;
 }
 
 function getFilteredTrading() {
-  let rows = [...TRADING];
-  const q = currentSearchQuery;
+  var rows = [...TRADING];
+  var q = currentSearchQuery;
   if (q) {
-    rows = rows.filter(r =>
-      Object.values(r).some(v => String(v).toLowerCase().includes(q))
-    );
+    rows = rows.filter(function(r) {
+      return Object.values(r).some(function(v) { return String(v).toLowerCase().includes(q); });
+    });
   }
   return rows;
 }
-Object.assign(window, {
-  ROLE, DK, SHEET_KEYS, ORDERS, TRADING,
-  currentPage, PAGE_SIZE,
-  getFilteredOrders, getFilteredTrading,
-  switchView, renderAll,
-  fetchOrders, fetchTrading
-});
 
-
+/* ============ EXPOSE GLOBALLY ============ */
+window.ROLE = ROLE;
+window.DK = DK;
+window.SHEET_KEYS = SHEET_KEYS;
+window.ORDERS = ORDERS;
+window.TRADING = TRADING;
+window.currentPage = currentPage;
+window.PAGE_SIZE = PAGE_SIZE;
+window.currentSearchQuery = currentSearchQuery;
+window.getFilteredOrders = getFilteredOrders;
+window.getFilteredTrading = getFilteredTrading;
+window.switchView = switchView;
+window.renderAll = renderAll;
+window.doFetchOrders = doFetchOrders;
+window.doFetchTrading = doFetchTrading;
+window.equalizeColumnWidths = equalizeColumnWidths;
+window.populateFilters = populateFilters;
