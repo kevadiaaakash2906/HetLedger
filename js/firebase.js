@@ -14,14 +14,15 @@ import { showToast } from "./utils.js";
 // PASTE YOUR FIREBASE CONFIG BELOW
 // ═══════════════════════════════════════════
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyC3GlUHfz6Zfd1o5eymGcY_jkyz4MuVfls",
+  authDomain: "vinereledger-b29be.firebaseapp.com",
+  databaseURL: "https://vinereledger-b29be-default-rtdb.firebaseio.com",
+  projectId: "vinereledger-b29be",
+  storageBucket: "vinereledger-b29be.firebasestorage.app",
+  messagingSenderId: "701394930039",
+  appId: "1:701394930039:web:456e7ae9c61fc92402b972",
+  measurementId: "G-HQN3J4LGXE"
 };
-
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 
