@@ -348,9 +348,20 @@
 <script src="js/trading.js" defer></script>
 
 <script>
-if (window.location.protocol === 'file:') {
-  document.body.innerHTML = '<div style="padding:40px;text-align:center;font-family:sans-serif;color:#fff;background:#1E1B18;height:100vh;"><h2>⚠️ Cannot open directly</h2><p style="color:#A69C8D;">This app must be served through a local server.<br><br><b>Quick fix:</b> Open terminal in this folder and run:<br><code style="background:#262220;padding:8px 12px;border-radius:4px;display:inline-block;margin-top:10px;">python3 -m http.server 8000</code><br><br>Then open <a href="http://localhost:8000" style="color:#B8935A;">http://localhost:8000</a></p></div>';
-}
+<!-- Firebase Compat SDK (creates global firebase object) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<!-- Your scripts (ALL regular, NO type="module") -->
+<script src="js/firebase.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/app.js" defer></script>
+<script src="js/dashboard.js" defer></script>
+<script src="js/table.js" defer></script>
+<script src="js/filters.js" defer></script>
+<script src="js/panel.js" defer></script>
+<script src="js/payments.js" defer></script>
+<script src="js/trading.js" defer></script>
 </script>
 </body>
 </html>
