@@ -2,13 +2,7 @@
    VINÉRE — Firebase + Sheet Sync
    ============================================ */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, deleteDoc,
-  query, serverTimestamp, writeBatch, where, orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
+var firebaseConfig = {
   apiKey: "AIzaSyC3GlUHfz6Zfd1o5eymGcY_jkyz4MuVfls",
   authDomain: "vinereledger-b29be.firebaseapp.com",
   databaseURL: "https://vinereledger-b29be-default-rtdb.firebaseio.com",
@@ -19,56 +13,70 @@ const firebaseConfig = {
   measurementId: "G-HQN3J4LGXE"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+window.firebase.initializeApp(firebaseConfig);
+var db = window.firebase.firestore();
 
-const SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbx9yEy0j0EHMegp_tzHX5-Q1xSuLHsp6Em98fLIg8wp9hbzIVbkTHeWhkWzZHgLE9RAYw/exec';
+var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzJ5U6ndEPYNt2r9cmzKnXK1w0q_WqqHXkhN73h8Iu7giXrCtjn9iwwhO4amKa54FbMlw/exec';
 
 /* ============ ORDERS ============ */
 async function fetchOrders() {
-  const snap = await getDocs(query(collection(db, 'orders'), orderBy('Sr. No.', 'asc')));
-  const rows = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
-  return { rows };
+  var snap = await db.collection('orders').orderBy('Sr. No.', 'asc').get();
+  var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
+  return { rows: rows };
 }
 
 async function addOrder(data) {
-  const ref = doc(collection(db, 'orders'));
-  await setDoc(ref, { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  var ref = db.collection('orders').doc();
+  await ref.set({
+    ...data,
+    createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  });
   syncToSheet({ ...data, _collection: 'orders' });
   return ref.id;
 }
 
 async function updateOrder(id, data) {
-  await setDoc(doc(db, 'orders', id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  await db.collection('orders').doc(id).set({
+    ...data,
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
   syncToSheet({ ...data, _collection: 'orders' });
 }
 
 async function deleteOrder(id, srNo) {
-  await deleteDoc(doc(db, 'orders', id));
+  await db.collection('orders').doc(id).delete();
   syncToSheet({ 'Sr. No.': srNo, _action: 'delete', _collection: 'orders' });
 }
 
 /* ============ TRADING ============ */
 async function fetchTrading() {
-  const snap = await getDocs(query(collection(db, 'trading'), orderBy('Sr. No.', 'asc')));
-  const rows = snap.docs.map(d => ({ _id: d.id, ...d.data() }));
-  return { rows };
+  var snap = await db.collection('trading').orderBy('Sr. No.', 'asc').get();
+  var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
+  return { rows: rows };
 }
 
 async function addTrading(data) {
-  const ref = doc(collection(db, 'trading'));
-  await setDoc(ref, { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  var ref = db.collection('trading').doc();
+  await ref.set({
+    ...data,
+    createdAt: window.firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  });
   syncToSheet({ ...data, _collection: 'trading' });
   return ref.id;
 }
 
 async function updateTrading(id, data) {
-  await setDoc(doc(db, 'trading', id), { ...data, updatedAt: serverTimestamp() }, { merge: true });
+  await db.collection('trading').doc(id).set({
+    ...data,
+    updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
   syncToSheet({ ...data, _collection: 'trading' });
 }
 
 async function deleteTrading(id, srNo) {
-  await deleteDoc(doc(db, 'trading', id));
+  await db.collection('trading').doc(id).delete();
   syncToSheet({ 'Sr. No.': srNo, _action: 'delete', _collection: 'trading' });
 }
 
@@ -85,7 +93,7 @@ function syncToSheet(payload) {
     if (window.showToast) showToast('Synced to Google Sheet', 'success', 2500);
   })
   .catch(function(err) {
-    if (window.showToast) showToast('Sheet sync failed — will retry on next save', 'error', 4000);
+    if (window.showToast) showToast('Sheet sync failed', 'error', 4000);
     console.error('Sync failed', err);
   });
 }
