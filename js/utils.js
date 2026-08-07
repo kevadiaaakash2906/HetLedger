@@ -89,3 +89,6 @@ export function dismissToast(toast) {
     if (toast.parentNode) toast.parentNode.removeChild(toast);
   });
 }
+Object.assign(window, {
+  $, fmtDate, fmtMoney, sortBy, escapeHtml, highlightText, showToast, dismissToast
+});
