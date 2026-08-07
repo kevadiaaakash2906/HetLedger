@@ -10,7 +10,10 @@ function renderTable() {
   var q = window.currentSearchQuery || '';
 
   if (!pageRows.length) {
-    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--text-dim)">No orders found</td></tr>';
+    var msg = window.currentSearchQuery 
+      ? 'No orders match "' + escapeHtml(window.currentSearchQuery) + '"' 
+      : 'No orders found';
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--text-dim)">' + msg + '</td></tr>';
     return;
   }
 
@@ -54,6 +57,12 @@ function renderTable() {
 function renderCards(rows) {
   var container = $('cardList');
   var q = window.currentSearchQuery || '';
+
+  if (!rows.length) {
+    var msg = q ? 'No orders match "' + escapeHtml(q) + '"' : 'No orders found';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-size:14px;">' + msg + '</div>';
+    return;
+  }
 
   container.innerHTML = rows.map(function(r) {
     var status = (r[DK.paymentStatus] || 'Not Sold').trim();
@@ -118,7 +127,10 @@ function renderTradeTable() {
   var q = window.currentSearchQuery || '';
 
   if (!pageRows.length) {
-    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-dim)">No trades found</td></tr>';
+    var msg = window.currentSearchQuery 
+      ? 'No trades match "' + escapeHtml(window.currentSearchQuery) + '"' 
+      : 'No trades found';
+    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-dim)">' + msg + '</td></tr>';
     return;
   }
 
@@ -164,6 +176,12 @@ function renderTradeCards(rows) {
   var container = $('tradeCardList');
   var K = SHEET_KEYS;
   var q = window.currentSearchQuery || '';
+
+  if (!rows.length) {
+    var msg = q ? 'No trades match "' + escapeHtml(q) + '"' : 'No trades found';
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);font-size:14px;">' + msg + '</div>';
+    return;
+  }
 
   container.innerHTML = rows.map(function(r) {
     var purchase = parseFloat(r[K.purchasePrice]) || 0;
