@@ -57,27 +57,57 @@ function renderCards(rows) {
 
   container.innerHTML = rows.map(function(r) {
     var status = (r[DK.paymentStatus] || 'Not Sold').trim();
+    var statusClass = {
+      'Not Sold': 'status-not-sold',
+      'Unpaid': 'status-unpaid',
+      'Partial': 'status-partial',
+      'Paid': 'status-paid'
+    }[status] || 'status-not-sold';
+
+    var subTotal = r[DK.subTotal] ? '₹' + Math.round(parseFloat(r[DK.subTotal]) || 0).toLocaleString('en-IN') : '—';
+    var usd = r[DK.usd] ? '$' + parseFloat(r[DK.usd]).toFixed(2) : '—';
+
     return '<div class="order-card" data-id="' + r._id + '">' +
-      '<div class="card-header">' +
+      '<div class="card-header" onclick="window.toggleCard(this)">' +
+      '<div class="card-header-left">' +
       '<span class="card-title">' + highlightText(r[DK.style] || '', q) + '</span>' +
-      '<span class="status-badge status-' + status.toLowerCase().replace(' ', '-') + '">' + status + '</span>' +
+      '<span class="card-meta">' + (r[DK.customer] || '') + ' · ' + fmtDate(r[DK.date]) + ' · Sr. ' + r[DK.sr] + '</span>' +
       '</div>' +
-      '<div class="card-meta">' + (r[DK.customer] || '') + ' · ' + fmtDate(r[DK.date]) + ' · Sr. ' + r[DK.sr] + '</div>' +
-      '<div class="card-row"><span class="card-label">Net Wt</span><span class="card-value">' + (r[DK.netWt] || '') + 'g</span></div>' +
-      '<div class="card-row"><span class="card-label">Sub Total</span><span class="card-value">₹' + (r[DK.subTotal] ? Math.round(parseFloat(r[DK.subTotal]) || 0).toLocaleString('en-IN') : '') + '</span></div>' +
-      '<div class="card-row"><span class="card-label">USD</span><span class="card-value">$' + (r[DK.usd] ? parseFloat(r[DK.usd]).toFixed(2) : '') + '</span></div>' +
+      '<div class="card-header-right">' +
+      '<span class="status-badge ' + statusClass + '">' + status + '</span>' +
+      '<span class="card-chevron">▼</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="card-summary">' +
+      '<div class="card-sum-row"><span>Net Wt</span><span>' + (r[DK.netWt] || '—') + 'g</span></div>' +
+      '<div class="card-sum-row"><span>Sub Total</span><span>' + subTotal + '</span></div>' +
+      '<div class="card-sum-row"><span>USD</span><span>' + usd + '</span></div>' +
+      '</div>' +
+      '<div class="card-body">' +
+      '<div class="card-row"><span class="card-label">Gross Wt</span><span class="card-value">' + (r[DK.grossWt] || '—') + 'g</span></div>' +
+      '<div class="card-row"><span class="card-label">Dia Qty</span><span class="card-value">' + (r[DK.diaQty] || '—') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">IN CT</span><span class="card-value">' + (r[DK.inCt] || '—') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Colour Stone</span><span class="card-value">' + (r[DK.colourStone] || '—') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Memo No.</span><span class="card-value">' + (r[DK.memoNo] || '—') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Sold To</span><span class="card-value">' + (r[DK.soldTo] || '—') + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Sale Price</span><span class="card-value">$' + (r[DK.salePrice] || '') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Sale Price</span><span class="card-value">' + (r[DK.salePrice] ? '$' + fmtMoney(r[DK.salePrice]) : '—') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Balance</span><span class="card-value">$' + (r[DK.balanceDue] || '0') + '</span></div>' +
+      '</div>' +
       '</div>';
   }).join('');
 
   container.querySelectorAll('.order-card').forEach(function(card) {
-    card.addEventListener('click', function() {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.card-header')) return;
       if (window.openOrderPanel) window.openOrderPanel(card.dataset.id);
     });
   });
 }
+
+window.toggleCard = function(header) {
+  var card = header.closest('.order-card');
+  card.classList.toggle('expanded');
+};
 
 function renderTradeTable() {
   var tbody = $('tradeTbody');
@@ -139,22 +169,45 @@ function renderTradeCards(rows) {
     var purchase = parseFloat(r[K.purchasePrice]) || 0;
     var sale = parseFloat(r[K.salePrice]) || 0;
     var profit = sale ? sale - purchase : 0;
+    var status = (r[K.paymentStatus] || 'Not Sold').trim();
+    var statusClass = {
+      'Not Sold': 'status-not-sold',
+      'Unpaid': 'status-unpaid',
+      'Partial': 'status-partial',
+      'Paid': 'status-paid'
+    }[status] || 'status-not-sold';
+
+    var profitStr = sale ? (profit >= 0 ? '+' : '-') + '$' + fmtMoney(Math.abs(profit)) : '—';
+    var profitColor = sale ? (profit >= 0 ? 'var(--success)' : 'var(--error)') : 'var(--text-dim)';
+
     return '<div class="order-card" data-id="' + r._id + '">' +
-      '<div class="card-header">' +
+      '<div class="card-header" onclick="window.toggleCard(this)">' +
+      '<div class="card-header-left">' +
       '<span class="card-title">' + highlightText(r[K.item] || '', q) + '</span>' +
-      '<span class="card-value" style="color:' + (profit >= 0 ? 'var(--success)' : 'var(--error)') + '">' +
-      (sale ? (profit >= 0 ? '+' : '-') + '$' + fmtMoney(Math.abs(profit)) : '') + '</span>' +
+      '<span class="card-meta">' + (r[K.vendor] || '') + ' · ' + fmtDate(r[K.date]) + '</span>' +
       '</div>' +
-      '<div class="card-meta">' + (r[K.vendor] || '') + ' · ' + fmtDate(r[K.date]) + '</div>' +
-      '<div class="card-row"><span class="card-label">Purchase</span><span class="card-value">$' + fmtMoney(purchase) + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Sale</span><span class="card-value">' + (sale ? '$' + fmtMoney(sale) : '—') + '</span></div>' +
+      '<div class="card-header-right">' +
+      '<span class="card-value" style="color:' + profitColor + '">' + profitStr + '</span>' +
+      '<span class="card-chevron">▼</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="card-summary">' +
+      '<div class="card-sum-row"><span>Purchase</span><span>$' + fmtMoney(purchase) + '</span></div>' +
+      '<div class="card-sum-row"><span>Sale</span><span>' + (sale ? '$' + fmtMoney(sale) : '—') + '</span></div>' +
+      '<div class="card-sum-row"><span>Status</span><span class="status-badge ' + statusClass + '">' + status + '</span></div>' +
+      '</div>' +
+      '<div class="card-body">' +
+      '<div class="card-row"><span class="card-label">Sold To</span><span class="card-value">' + (r[K.soldTo] || '—') + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Date Sold</span><span class="card-value">' + fmtDate(r[K.dateSold]) + '</span></div>' +
       '<div class="card-row"><span class="card-label">Paid</span><span class="card-value">$' + fmtMoney(r[K.amountPaid]) + '</span></div>' +
       '<div class="card-row"><span class="card-label">Balance</span><span class="card-value">$' + fmtMoney(r[K.balanceDue]) + '</span></div>' +
+      '</div>' +
       '</div>';
   }).join('');
 
   container.querySelectorAll('.order-card').forEach(function(card) {
-    card.addEventListener('click', function() {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.card-header')) return;
       if (window.openEditTrade) window.openEditTrade(card.dataset.id);
     });
   });
