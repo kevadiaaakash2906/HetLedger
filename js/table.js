@@ -233,8 +233,9 @@ function renderTradeCards(rows) {
     var profitStr = sale ? (profit >= 0 ? '+' : '-') + '$' + fmtMoney(Math.abs(profit)) : '—';
     var profitColor = sale ? (profit >= 0 ? 'var(--success)' : 'var(--error)') : 'var(--text-dim)';
 
+    // Single-row trading card — no summary, no body, no expand
     return '<div class="order-card trade-card" data-id="' + r._id + '">' +
-      '<div class="card-header" onclick="window.toggleCard(this)">' +
+      '<div class="card-header">' +
       '<div class="card-header-left">' +
       '<span class="card-title">' + highlightText(r[K.item] || '', q) + '</span>' +
       '<span class="card-meta">' + (r[K.vendor] || '') + ' · ' + fmtDate(r[K.date]) + '</span>' +
@@ -242,24 +243,15 @@ function renderTradeCards(rows) {
       '<div class="card-header-right">' +
       '<span class="card-sr-badge">#' + r[K.sr] + '</span>' +
       '<span class="card-value" style="color:' + profitColor + '">' + profitStr + '</span>' +
-      '<span class="card-chevron">▼</span>' +
+      '<span class="status-badge ' + statusClass + '">' + status + '</span>' +
       '</div>' +
-      '</div>' +
-      '<div class="card-body">' +
-      '<div class="card-row"><span class="card-label">Purchase</span><span class="card-value">$' + fmtMoney(purchase) + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Sale</span><span class="card-value">' + (sale ? '$' + fmtMoney(sale) : '—') + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Sold To</span><span class="card-value">' + (r[K.soldTo] || '—') + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Date Sold</span><span class="card-value">' + fmtDate(r[K.dateSold]) + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Paid</span><span class="card-value">$' + fmtMoney(r[K.amountPaid]) + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Balance</span><span class="card-value">$' + fmtMoney(r[K.balanceDue]) + '</span></div>' +
-      '<div class="card-row"><span class="card-label">Status</span><span class="card-value"><span class="status-badge ' + statusClass + '">' + status + '</span></span></div>' +
       '</div>' +
       '</div>';
   }).join('');
 
-  container.querySelectorAll('.order-card').forEach(function(card) {
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.card-header')) return;
+  // Click anywhere on card to open edit panel
+  container.querySelectorAll('.trade-card').forEach(function(card) {
+    card.addEventListener('click', function() {
       if (window.openEditTrade) window.openEditTrade(card.dataset.id);
     });
   });
