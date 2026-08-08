@@ -35,7 +35,6 @@ function renderTable() {
       '<td class="num">' + (r[DK.grossWt] || '') + '</td>' +
       '<td class="num">' + (r[DK.netWt] || '') + '</td>' +
       '<td class="num">' + (r[DK.inCt] || '') + '</td>' +
-      '<td class="num">' + (r[DK.colourStone] || '') + '</td>' +
       '<td class="num">' + (function() {
       var gold = parseFloat(r[DK.goldAmt]) || 0;
       var labor = parseFloat(r[DK.laborAmt]) || 0;
