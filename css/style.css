@@ -1554,17 +1554,19 @@ mark.search-highlight {
 
 
 /* ============================================
-   TRADING CARDS — Single Row
+   TRADING CARDS — Single Row Only
    ============================================ */
 .trade-card {
-  border-radius: var(--radius);
+  cursor: pointer;
 }
 .trade-card .card-header {
   border-bottom: none;
+  pointer-events: none; /* let card click bubble through */
 }
-.trade-card.expanded .card-header {
-  border-bottom: 1px solid var(--border);
+.trade-card .card-header-right {
+  gap: 10px;
 }
-.trade-card .card-body {
-  border-top: none;
+.trade-card .card-header-right .status-badge {
+  font-size: 10px;
+  padding: 3px 8px;
 }
