@@ -138,6 +138,12 @@
       <div class="field"><label>Diamond Amount (₹)</label><input id="f_diamAmount" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_diamAmount"></div></div>
       <div class="field"><label>L Charges (₹/g)</label><input id="f_lCharges" type="number" step="1" placeholder="900"><div class="field-error" id="err_f_lCharges"></div></div>
     </div>
+    <div class="field" style="margin-top:-6px;margin-bottom:10px;">
+  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text-dim);font-weight:400;">
+    <input type="checkbox" id="f_flatLabor" style="width:16px;height:16px;cursor:pointer;">
+    Flat labor — fixed amount (don't multiply by weight)
+  </label>
+</div>
     <div class="computed-preview">
       <h4>Live Preview</h4>
       <div class="computed-row"><span class="label">Pg Wt</span><span class="value" id="prev_pgWt">—</span></div>
