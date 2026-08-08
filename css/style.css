@@ -1570,3 +1570,13 @@ mark.search-highlight {
   font-size: 10px;
   padding: 3px 8px;
 }
+
+/* ============================================
+   DESKTOP: NEVER show card lists
+   ============================================ */
+@media (min-width: 901px) {
+  .card-list,
+  .card-list.active {
+    display: none !important;
+  }
+}
