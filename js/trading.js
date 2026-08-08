@@ -200,10 +200,41 @@ $('saveTradeBtn').addEventListener('click', async function() {
 });
 
 /* ============ DELETE ============ */
-$('deleteTradeBtn').addEventListener('click', async function() {
-  if (!editingTradeId) return;
-  if (!confirm('Delete this trade permanently?')) return;
+var deleteTradeTimer = null;
+var deleteTradeProgress = 0;
 
+function startDeleteTradeTimer() {
+  if (!editingTradeId) return;
+  var btn = $('deleteTradeBtn');
+  btn.classList.add('deleting');
+  deleteTradeProgress = 0;
+
+  deleteTradeTimer = setInterval(function() {
+    deleteTradeProgress += 50;
+    var pct = (deleteTradeProgress / 3000) * 100;
+    btn.style.setProperty('--delete-progress', pct + '%');
+
+    if (deleteTradeProgress >= 3000) {
+      clearInterval(deleteTradeTimer);
+      deleteTradeTimer = null;
+      btn.classList.remove('deleting');
+      doDeleteTrade();
+    }
+  }, 50);
+}
+
+function cancelDeleteTradeTimer() {
+  if (deleteTradeTimer) {
+    clearInterval(deleteTradeTimer);
+    deleteTradeTimer = null;
+  }
+  var btn = $('deleteTradeBtn');
+  btn.classList.remove('deleting');
+  btn.style.setProperty('--delete-progress', '0%');
+}
+
+async function doDeleteTrade() {
+  if (!editingTradeId) return;
   var trade = TRADING.find(function(r) { return r._id === editingTradeId; });
   var srNo = trade ? trade[SHEET_KEYS.sr] : '';
 
@@ -217,4 +248,10 @@ $('deleteTradeBtn').addEventListener('click', async function() {
     console.error(err);
     showToast('Failed to delete trade', 'error');
   }
-});
+}
+
+$('deleteTradeBtn').addEventListener('mousedown', startDeleteTradeTimer);
+$('deleteTradeBtn').addEventListener('touchstart', startDeleteTradeTimer);
+$('deleteTradeBtn').addEventListener('mouseup', cancelDeleteTradeTimer);
+$('deleteTradeBtn').addEventListener('mouseleave', cancelDeleteTradeTimer);
+$('deleteTradeBtn').addEventListener('touchend', cancelDeleteTradeTimer);
