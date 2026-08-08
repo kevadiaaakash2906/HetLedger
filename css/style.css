@@ -1552,20 +1552,19 @@ mark.search-highlight {
   display: none;
 }
 
+
 /* ============================================
-   TRADING CARDS — Compact Summary
+   TRADING CARDS — Single Row
    ============================================ */
-/* Hide Purchase from summary (P/L already shown in header) */
-.order-card .card-sum-row:first-child {
-  display: none;
+.trade-card {
+  border-radius: var(--radius);
 }
-/* Adjust grid to 2 columns for Sale + Status */
-.order-card .card-summary {
-  grid-template-columns: 1fr 1fr;
+.trade-card .card-header {
+  border-bottom: none;
 }
-@media (max-width: 600px) {
-  .order-card .card-summary {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
+.trade-card.expanded .card-header {
+  border-bottom: 1px solid var(--border);
+}
+.trade-card .card-body {
+  border-top: none;
 }
