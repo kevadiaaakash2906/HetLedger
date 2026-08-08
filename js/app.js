@@ -17,6 +17,46 @@ async function sha256(str) {
   return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
 }
 
+/* ---------- Auto-login on load ---------- */
+(async function checkStoredAuth() {
+  var savedRole = localStorage.getItem('vinere_role');
+  if (!savedRole || !PASSWORDS[savedRole]) return;
+
+  // We have a stored role — attempt silent Firebase re-auth if available
+  ROLE = savedRole;
+
+  // Hide login, show app
+  var loginEl = document.getElementById('login');
+  var appEl = document.getElementById('app');
+  if (loginEl) loginEl.style.display = 'none';
+  if (appEl) {
+    appEl.style.display = 'block';
+    document.body.style.background = 'var(--bg)';
+  }
+
+  // Update user badge if present
+  var userBadge = document.getElementById('userBadge');
+  if (userBadge) userBadge.textContent = ROLE;
+
+  // Role-based button visibility
+  var isStaff = ROLE === 'staff';
+  var isSeller = ROLE === 'seller';
+  var isCustomer = ROLE === 'customer';
+
+  var newOrderBtn = document.getElementById('newOrderBtn');
+  var receivePaymentBtn = document.getElementById('receivePaymentBtn');
+  var newTradeBtn = document.getElementById('newTradeBtn');
+
+  if (newOrderBtn) newOrderBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+  if (receivePaymentBtn) receivePaymentBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+  if (newTradeBtn) newTradeBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+
+  // Init app data
+  if (typeof initApp === 'function') {
+    await initApp();
+  }
+})();
+
 window.login = async function() {
   var input = $('passInput').value.trim();
   if (!input) return;
@@ -26,6 +66,9 @@ window.login = async function() {
     if (hash === PASSWORDS[role]) {
       ROLE = role;
       USER_HASH = hash;
+
+      // Persist role for auto-login
+      localStorage.setItem('vinere_role', role);
 
       try {
         var email = role + '@vinere.local';
@@ -52,6 +95,10 @@ window.login = async function() {
       $('receivePaymentBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
       $('newTradeBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
 
+      // Update user badge if present
+      var userBadge = document.getElementById('userBadge');
+      if (userBadge) userBadge.textContent = ROLE;
+
       await initApp();
       showToast('Welcome, ' + role, 'success', 2000);
       return;
@@ -60,6 +107,20 @@ window.login = async function() {
 
   $('loginError').textContent = 'Invalid access code';
   showToast('Invalid access code', 'error');
+};
+
+/* ---------- Logout ---------- */
+window.logout = function() {
+  localStorage.removeItem('vinere_role');
+  ROLE = null;
+  USER_HASH = null;
+
+  // Sign out from Firebase if available
+  if (window.firebase && window.firebase.auth) {
+    window.firebase.auth().signOut().catch(function() {});
+  }
+
+  location.reload();
 };
 
 $('loginBtn').addEventListener('click', window.login);
