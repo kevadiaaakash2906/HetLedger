@@ -68,20 +68,20 @@
         <table id="ordersTable">
           <colgroup>
             <col style="width:5%"><col style="width:7%"><col style="width:10%"><col style="width:8%">
-            <col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%">
-            <col style="width:9%"><col style="width:6%"><col style="width:7%"><col style="width:9%">
-            <col style="width:7%"><col style="width:8%">
+            <col style="width:6%"><col style="width:6%"><col style="width:6%">
+            <col style="width:10%"><col style="width:6%"><col style="width:7%"><col style="width:10%">
+            <col style="width:8%"><col style="width:11%">
           </colgroup>
           <thead><tr>
             <th class="num">Sr.</th><th>Customer</th><th>Style No.</th><th>Date</th>
-            <th class="num">Gross Wt</th><th class="num">Net Wt</th><th class="num">Carat</th><th class="num">diamond ct</th>
+            <th class="num">Gross Wt</th><th class="num">Net Wt</th><th class="num">Carat</th>
             <th class="num">Sub Total</th><th class="num">$</th><th>Memo No.</th><th>Sold To</th>
             <th class="num">Sale Price</th><th>Status</th>
           </tr></thead>
           <tbody id="tbody">
-            <tr class="skeleton-row"><td colspan="14"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="14"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="14"><div class="skeleton-cell" style="width:100%"></div></td></tr>
+            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
+            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
+            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
           </tbody>
         </table>
 
@@ -139,11 +139,11 @@
       <div class="field"><label>L Charges (₹/g)</label><input id="f_lCharges" type="number" step="1" placeholder="900"><div class="field-error" id="err_f_lCharges"></div></div>
     </div>
     <div class="field" style="margin-top:-6px;margin-bottom:10px;">
-  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text-dim);font-weight:400;">
-    <input type="checkbox" id="f_flatLabor" style="width:16px;height:16px;cursor:pointer;">
-    Flat labor — fixed amount (don't multiply by weight)
-  </label>
-</div>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text-dim);font-weight:400;">
+        <input type="checkbox" id="f_flatLabor" style="width:16px;height:16px;cursor:pointer;">
+        Flat labor — fixed amount (don't multiply by weight)
+      </label>
+    </div>
     <div class="computed-preview">
       <h4>Live Preview</h4>
       <div class="computed-row"><span class="label">Pg Wt</span><span class="value" id="prev_pgWt">—</span></div>
