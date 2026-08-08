@@ -493,6 +493,7 @@ main { padding: 20px 24px; }
 
 #ordersTable tbody td,
 #tradingTable tbody td {
+  white-space: nowrap;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
@@ -1499,8 +1500,20 @@ mark.search-highlight {
 }
 
 /* ============================================
-   ROLE-BASED COLUMN HIDING (Orders)
+   ROLE-BASED COLUMN HIDING (Orders Table)
    ============================================ */
+
+/* When columns are hidden, switch to auto layout so remaining
+   columns expand to fill space instead of leaving empty gaps */
+#ordersTable.seller-view,
+#ordersTable.staff-view {
+  table-layout: auto !important;
+}
+
+#ordersTable.seller-view colgroup,
+#ordersTable.staff-view colgroup {
+  display: none;
+}
 
 /* Seller: hide Net Wt (6th) and Sub Total (8th) */
 #ordersTable.seller-view th:nth-child(6),
@@ -1537,4 +1550,22 @@ mark.search-highlight {
 /* Staff: hide IN CT row in card body */
 .order-card.staff-view .card-row:nth-child(3) {
   display: none;
+}
+
+/* ============================================
+   TRADING CARDS — Compact Summary
+   ============================================ */
+/* Hide Purchase from summary (P/L already shown in header) */
+.order-card .card-sum-row:first-child {
+  display: none;
+}
+/* Adjust grid to 2 columns for Sale + Status */
+.order-card .card-summary {
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 600px) {
+  .order-card .card-summary {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
 }
