@@ -19,6 +19,7 @@ window.openOrderPanel = function(id) {
    'f_soldTo','f_salePrice','f_dateSold'].forEach(function(fid) { $(fid).value = ''; });
   $('f_multiplier').value = '0.595';
   $('f_lCharges').value = '900';
+  $('f_flatLabor').checked = false;
 
   currentInstallments = [];
   renderInstallments();
@@ -45,6 +46,7 @@ window.openOrderPanel = function(id) {
     $('f_multiplier').value = order[DK.multiplier] || '0.595';
     $('f_diamAmount').value = order[DK.diamAmount] || '';
     $('f_lCharges').value = order[DK.lCharges] || '900';
+    $('f_flatLabor').checked = !!order['_flatLabor'];
     $('f_memoNo').value = order[DK.memoNo] || '';
     $('f_soldTo').value = order[DK.soldTo] || '';
     $('f_salePrice').value = order[DK.salePrice] || '';
@@ -99,8 +101,8 @@ function updatePreview() {
 
   var pgWt = netWt * multiplier;
   var goldAmt = pgWt * 16000;
-  var laborAmt = netWt * lCharges;
-  var subTotal = goldAmt + diamAmount + laborAmt;
+  var flatLabor = $('f_flatLabor').checked;
+  var laborAmt = flatLabor ? lCharges : (netWt * lCharges);
   var usd = subTotal / 94;
 
   $('prev_pgWt').textContent = pgWt ? pgWt.toFixed(3) + ' g' : '—';
@@ -190,8 +192,8 @@ $('saveBtn').addEventListener('click', async function() {
   var diam = parseFloat($('f_diamAmount').value) || 0;
   var pgWt = net * mult;
   var goldAmt = pgWt * 16000;
-  var laborAmt = net * lCharge;
-  var subTotal = goldAmt + diam + laborAmt;
+  var flatLabor = $('f_flatLabor').checked;
+  var laborAmt = flatLabor ? lCharge : (net * lCharge);
   var usd = subTotal / 94;
 
   var status = 'Not Sold';
@@ -226,6 +228,7 @@ $('saveBtn').addEventListener('click', async function() {
   data[DK.balanceDue] = (salePrice - totalPaid).toString();
   data[DK.paymentStatus] = status;
   data[DK.paymentLog] = JSON.stringify(currentInstallments);
+  data['_flatLabor'] = $('f_flatLabor').checked;
 
   try {
     if (editingId) {
