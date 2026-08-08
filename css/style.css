@@ -200,6 +200,7 @@ body {
   font-size: 15px;
   font-weight: 500;
   color: var(--accent);
+  transition: color 0.2s;
 }
 
 .controls {
@@ -1155,8 +1156,10 @@ mark.search-highlight {
   .header-stats {
     justify-content: center;
     width: 100%;
-    gap: 16px;
+    gap: 12px;
   }
+  .hstat { text-align: center; }
+  .hstat-label { font-size: 9px; }
   .hstat-value { font-size: 13px; }
   .controls {
     flex-wrap: wrap;
