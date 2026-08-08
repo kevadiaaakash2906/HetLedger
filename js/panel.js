@@ -298,7 +298,7 @@ async function doDeleteOrder() {
     console.error(err);
     showToast('Failed to delete order', 'error');
   }
-});
+}
 
 $('deleteBtn').addEventListener('mousedown', startDeleteTimer);
 $('deleteBtn').addEventListener('touchstart', startDeleteTimer);
