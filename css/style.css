@@ -1188,6 +1188,101 @@ mark.search-highlight {
 }
 
 /* ============================================
+   VIEW TRANSITIONS
+   ============================================ */
+
+.view-container {
+  position: relative;
+  min-height: 400px;
+}
+
+.view-content {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.view-content.switching-out {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.98);
+  pointer-events: none;
+}
+
+.view-content.switching-in {
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+}
+
+.view-content.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* KPI card stagger animation */
+.kpi-grid .kpi-card {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: kpiSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.kpi-grid .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+.kpi-grid .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+.kpi-grid .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+.kpi-grid .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+.kpi-grid .kpi-card:nth-child(5) { animation-delay: 0.25s; }
+.kpi-grid .kpi-card:nth-child(6) { animation-delay: 0.3s; }
+
+@keyframes kpiSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Table row stagger */
+.table-wrap tbody tr {
+  opacity: 0;
+  animation: tableRowIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.table-wrap tbody tr:nth-child(1) { animation-delay: 0.03s; }
+.table-wrap tbody tr:nth-child(2) { animation-delay: 0.06s; }
+.table-wrap tbody tr:nth-child(3) { animation-delay: 0.09s; }
+.table-wrap tbody tr:nth-child(4) { animation-delay: 0.12s; }
+.table-wrap tbody tr:nth-child(5) { animation-delay: 0.15s; }
+.table-wrap tbody tr:nth-child(6) { animation-delay: 0.18s; }
+.table-wrap tbody tr:nth-child(7) { animation-delay: 0.21s; }
+.table-wrap tbody tr:nth-child(8) { animation-delay: 0.24s; }
+.table-wrap tbody tr:nth-child(9) { animation-delay: 0.27s; }
+.table-wrap tbody tr:nth-child(10) { animation-delay: 0.3s; }
+
+@keyframes tableRowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* View toggle active glow pulse */
+.view-toggle button.active {
+  animation: activeGlow 2s ease-in-out infinite;
+}
+
+@keyframes activeGlow {
+  0%, 100% { box-shadow: 0 4px 8px rgba(184, 147, 90, 0.3), 0 1px 2px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 4px 16px rgba(184, 147, 90, 0.45), 0 2px 4px rgba(0,0,0,0.3); }
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 @media (max-width: 900px) {
