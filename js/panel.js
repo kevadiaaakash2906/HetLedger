@@ -99,7 +99,8 @@ function updatePreview() {
 
   var pgWt = netWt * multiplier;
   var goldAmt = pgWt * 16000;
-  var laborAmt = netWt * lCharges;
+  var isFlatLabor = $('f_flatLabor') && $('f_flatLabor').checked;
+  var laborAmt = isFlatLabor ? lCharges : netWt * lCharges;
   var subTotal = goldAmt + diamAmount + laborAmt;
   var usd = subTotal / 94;
 
@@ -190,7 +191,8 @@ $('saveBtn').addEventListener('click', async function() {
   var diam = parseFloat($('f_diamAmount').value) || 0;
   var pgWt = net * mult;
   var goldAmt = pgWt * 16000;
-  var laborAmt = net * lCharge;
+  var isFlatLaborSave = $('f_flatLabor') && $('f_flatLabor').checked;
+  var laborAmt = isFlatLaborSave ? lCharge : net * lCharge;
   var subTotal = goldAmt + diam + laborAmt;
   var usd = subTotal / 94;
 
