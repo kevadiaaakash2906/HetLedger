@@ -536,9 +536,14 @@ main { padding: 20px 24px; }
    CARDS (Mobile) — Collapsible Tiles
    ============================================ */
 .card-list {
-  display: none !important;
+  display: none;
   gap: 12px;
   flex-direction: column;
+}
+
+/* CRITICAL FIX: ensure active card list shows */
+.card-list.active {
+  display: flex !important;
 }
 
 .order-card {
@@ -1376,7 +1381,7 @@ mark.search-highlight {
 
   /* Mobile: hide table, show active cards only */
   .table-wrap { display: none; }
-  .card-list { display: none !important; }
+  .card-list { display: none; }
   .card-list.active { display: flex !important; }
 
   .pagination-bar {
@@ -1418,5 +1423,77 @@ mark.search-highlight {
   }
   .card-sum-row span:first-child {
     font-size: 11px;
+  }
+}
+
+/* ============================================
+   MOBILE COMPACTNESS FIX — Shrink totals & P/L
+   ============================================ */
+@media (max-width: 900px) {
+  /* Shrink KPI cards further */
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+    margin-bottom: 12px !important;
+  }
+  .kpi-card {
+    padding: 8px 10px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  .kpi-label {
+    font-size: 8px !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 3px !important;
+  }
+  .kpi-value {
+    font-size: 13px !important;
+    margin-bottom: 2px !important;
+  }
+  .kpi-sub {
+    font-size: 9px !important;
+  }
+
+  /* Shrink header stats */
+  .header-stats {
+    gap: 6px !important;
+  }
+  .hstat {
+    padding: 6px 4px !important;
+    border-radius: var(--radius-sm) !important;
+  }
+  .hstat-label {
+    font-size: 8px !important;
+    margin-bottom: 2px !important;
+  }
+  .hstat-value {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px !important;
+  }
+  .kpi-card {
+    padding: 7px 8px !important;
+  }
+  .kpi-value {
+    font-size: 12px !important;
+  }
+  .kpi-label {
+    font-size: 7px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .kpi-card {
+    padding: 6px 6px !important;
+  }
+  .kpi-value {
+    font-size: 11px !important;
   }
 }
