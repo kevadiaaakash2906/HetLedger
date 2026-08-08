@@ -456,7 +456,7 @@ main { padding: 20px 24px; }
 
 #ordersTable,
 #tradingTable {
-  width: 100%;
+  width: 125%;
   border-collapse: collapse;
   font-size: 12px;
   table-layout: fixed;
