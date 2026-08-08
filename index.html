@@ -1,268 +1,573 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#1E1B18">
-<title>VINÉRE Ledger — Orders</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
-<base target="_blank">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VINÉRE • Ledger</title>
+  <style>
+    :root {
+      --bg: #1a1814;
+      --surface: #25221e;
+      --surface-2: #2e2a25;
+      --border: #3a3530;
+      --text: #e8e2d9;
+      --text-dim: #9e968a;
+      --accent: #c9a96e;
+      --accent-glow: rgba(201, 169, 110, 0.15);
+      --green: #7ee787;
+      --red: #ff7b72;
+      --radius: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+      height: 100%;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Layout */
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .brand {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .brand span { color: var(--accent); font-weight: 400; font-size: 1.3rem; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .tab {
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .tab.active {
+      background: var(--surface-2);
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-glow);
+    }
+
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .search {
+      flex: 1 1 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .search::placeholder { color: var(--text-dim); }
+    .btn {
+      padding: 9px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #1a1510;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border-color: transparent;
+      font-size: 1.1rem;
+      padding: 9px 10px;
+    }
+
+    /* Summary Grid — Top Cards */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 14px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .summary-card.wide {
+      grid-column: 1 / -1;
+    }
+    .summary-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .summary-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.1;
+    }
+    .summary-value.green { color: var(--green); }
+    .summary-value.red   { color: var(--red); }
+
+    /* Stat Cards — Full width list */
+    .stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.red   { color: var(--red); }
+    .stat-value.gold  { color: var(--accent); }
+    .stat-desc {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* Rows / Table — THE FIX */
+    .rows-wrap {
+      flex: 1 1 auto;
+      min-height: 0;           /* CRITICAL: prevents flex collapse */
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 14px;
+    }
+    .rows-header {
+      display: grid;
+      grid-template-columns: 40px 1fr 100px 100px;
+      gap: 10px;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 40px 1fr 100px 100px;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      transition: transform .08s ease;
+    }
+    .row:active { transform: scale(0.995); }
+    .row-id { color: var(--text-dim); font-size: 0.85rem; }
+    .row-buyer { font-weight: 600; }
+    .row-status {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-align: center;
+      width: fit-content;
+    }
+    .status-paid { background: rgba(126, 231, 135, 0.12); color: var(--green); }
+    .status-pending { background: rgba(255, 123, 114, 0.12); color: var(--red); }
+    .status-memo { background: rgba(201, 169, 110, 0.12); color: var(--accent); }
+    .row-amount { text-align: right; font-weight: 600; }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .page-btn {
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-dim);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-info {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      padding: 0 8px;
+    }
+    .swipe-hint {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+
+    /* Footer */
+    .footer-bar {
+      position: sticky;
+      bottom: 0;
+      background: rgba(26, 24, 20, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border);
+      padding: 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+    .footer-bar .url { color: var(--text); font-weight: 500; }
+
+    /* ============================
+       MOBILE COMPACT OVERRIDES
+       ============================ */
+    @media (max-width: 640px) {
+      .app { padding: 12px; }
+
+      /* Shrink summary cards */
+      .summary-grid { gap: 8px; }
+      .summary-card {
+        padding: 10px 8px !important;
+        border-radius: 12px !important;
+      }
+      .summary-label {
+        font-size: 0.6rem !important;
+        letter-spacing: 0.08em !important;
+        margin-bottom: 4px !important;
+      }
+      .summary-value {
+        font-size: 1.15rem !important;
+        line-height: 1.15 !important;
+      }
+      .summary-card.wide {
+        padding: 10px 8px !important;
+      }
+
+      /* Shrink stat cards */
+      .stat-card { padding: 12px 14px !important; }
+      .stat-label { font-size: 0.68rem !important; margin-bottom: 4px !important; }
+      .stat-value { font-size: 1.15rem !important; margin-bottom: 2px !important; }
+      .stat-desc { font-size: 0.78rem !important; }
+
+      /* Horizontal scroll option for top cards (uncomment if preferred) */
+      /*
+      .summary-grid.top-row {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 8px !important;
+      }
+      .summary-grid.top-row .summary-card {
+        flex: 0 0 auto !important;
+        min-width: 130px !important;
+      }
+      */
+
+      /* Rows: stack on very small screens */
+      .rows-header { display: none; }
+      .row {
+        grid-template-columns: 1fr auto !important;
+        gap: 6px 12px !important;
+        padding: 12px !important;
+      }
+      .row-id { grid-column: 1; font-size: 0.75rem; }
+      .row-buyer { grid-column: 1; }
+      .row-status { grid-column: 1; justify-self: start; }
+      .row-amount { grid-column: 2; grid-row: 1 / 3; align-self: center; font-size: 1.1rem; }
+
+      .page-btn { padding: 7px 10px; font-size: 0.8rem; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ============ LOGIN ============ -->
-<div id="login">
-  <div class="login-card">
-    <img class="login-logo" src="images/vinere-logo-white.png" alt="VINÉRE Jewellery">
-    <input id="passInput" type="password" placeholder="Access code" autofocus autocomplete="off">
-    <button id="loginBtn">Unlock</button>
-    <div id="loginError"></div>
+<div class="app">
+  <!-- Brand -->
+  <div class="brand">VINÉRE <span>• Ledger</span></div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('orders', this)">Orders</div>
+    <div class="tab" onclick="switchTab('trading', this)">Trading</div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search" id="search" placeholder="Search..." oninput="filterRows()" />
+    <button class="btn btn-ghost" title="Refresh" onclick="loadRows()">↻</button>
+    <button class="btn">Payment</button>
+    <button class="btn btn-primary">+ Order</button>
+    <button class="btn btn-primary">+ Trade</button>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-grid top-row">
+    <div class="summary-card">
+      <div class="summary-label">Profit / Loss</div>
+      <div class="summary-value green" id="plValue">+$9,124.14</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-label">Remaining Stock</div>
+      <div class="summary-value" id="stockValue">65</div>
+    </div>
+    <div class="summary-card wide">
+      <div class="summary-label">Stock Cost</div>
+      <div class="summary-value" id="stockCost">$83,060.08</div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-list">
+    <div class="stat-card">
+      <div class="stat-label">Gross Profit / Loss</div>
+      <div class="stat-value green" id="grossPl">+$9,124.14</div>
+      <div class="stat-desc">revenue minus cost</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Amount Collected</div>
+      <div class="stat-value gold" id="collected">$5,858.00</div>
+      <div class="stat-desc">payments received</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Outstanding Balance</div>
+      <div class="stat-value gold" id="outstanding">$53,293.00</div>
+      <div class="stat-desc">across all orders</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Stock on Hand</div>
+      <div class="stat-value" id="onHand">65</div>
+      <div class="stat-desc">unsold items worth $83,060.08</div>
+    </div>
+  </div>
+
+  <!-- Rows (THE FIX: min-height:0 + flex:1 so it never collapses on mobile) -->
+  <div class="rows-wrap" id="rowsWrap">
+    <div class="rows-header">
+      <div>#</div>
+      <div>Buyer</div>
+      <div>Status</div>
+      <div style="text-align:right">Amount</div>
+    </div>
+    <div id="rowsList">
+      <!-- JS injects rows here -->
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination">
+    <button class="page-btn" id="btnFirst" onclick="gotoPage(1)">First</button>
+    <button class="page-btn" id="btnPrev" onclick="gotoPage(currentPage-1)">Prev</button>
+    <div class="page-info" id="pageInfo">Page 1 of 3</div>
+    <button class="page-btn" id="btnNext" onclick="gotoPage(currentPage+1)">Next</button>
+    <button class="page-btn" id="btnLast" onclick="gotoPage(totalPages)">Last</button>
+  </div>
+  <div class="swipe-hint">Swipe left/right to change pages</div>
+
+  <!-- Footer -->
+  <div class="footer-bar">
+    <span>☰</span>
+    <span class="url">vinereledger.pages.dev</span>
+    <span>↻</span>
   </div>
 </div>
 
-<!-- ============ APP ============ -->
-<div id="app">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="mark">VINÉRE<span class="dot">·</span>Ledger</div>
-      <div class="view-toggle">
-        <button class="btn secondary small active" id="ordersViewBtn">Orders</button>
-        <button class="btn secondary small" id="tradingViewBtn">Trading</button>
-      </div>
-    </div>
-    <div class="header-stats" id="headerStats">
-      <div class="hstat" id="hstat_1_wrap"><span class="hstat-label" id="hstat_1_label">Profit / Loss</span><span class="hstat-value" id="hstat_1">—</span></div>
-      <div class="hstat" id="hstat_2_wrap"><span class="hstat-label" id="hstat_2_label">Remaining Stock</span><span class="hstat-value" id="hstat_2">—</span></div>
-      <div class="hstat" id="hstat_3_wrap"><span class="hstat-label" id="hstat_3_label">Stock Cost</span><span class="hstat-value" id="hstat_3">—</span></div>
-    </div>
-    <div class="topbar-right">
-      <div class="search-wrap">
-        <input id="search" placeholder="Search…" autocomplete="off">
-        <button id="searchClear" class="search-clear" title="Clear search">&times;</button>
-        <span id="resultCount" class="result-count"></span>
-      </div>
-      <button class="btn secondary small" id="refreshBtn" title="Refresh">↻</button>
-      <button class="btn secondary small" id="receivePaymentBtn">Payment</button>
-      <button class="btn small" id="newOrderBtn">+ Order</button>
-      <button class="btn small" id="newTradeBtn" style="display:none;">+ Trade</button>
-    </div>
-  </header>
+<script>
+  /* =====================
+     DATA & STATE
+     ===================== */
+  const allData = Array.from({length: 36}, (_, i) => {
+    const statuses = ['paid','pending','memo'];
+    const status = statuses[Math.floor(Math.random()*statuses.length)];
+    const buyer = ['A. Sharma','R. Goldsmith','M. Jewellers','S. Diamonds','K. Bullion','P. Traders','N. Exports'][Math.floor(Math.random()*7)];
+    const amount = (Math.random()*8000 + 500).toFixed(2);
+    return {
+      id: i + 1,
+      buyer,
+      status,
+      amount: parseFloat(amount),
+      date: new Date(Date.now() - Math.random()*1e10).toISOString().slice(0,10)
+    };
+  });
 
-  <main>
-    <div id="ordersView">
-      <div class="filter-bar compact">
-        <select id="filterCustomer"><option value="">All customers</option></select>
-        <input type="date" id="filterDateFrom" placeholder="From">
-        <input type="date" id="filterDateTo" placeholder="To">
-        <select id="filterSaleStatus"><option value="">All status</option><option value="Not Sold">Not sold</option><option value="Unpaid">Unpaid</option><option value="Partial">Partial</option><option value="Paid">Paid</option></select>
-        <button class="btn secondary small" id="clearFiltersBtn">Clear</button>
-        <span class="rate-note" id="rateNote"></span>
-      </div>
+  let currentPage = 1;
+  const perPage = 10;
+  const totalPages = Math.ceil(allData.length / perPage);
+  let filtered = [...allData];
 
-      <div class="kpi-grid" id="kpiGrid"></div>
-      <div class="kpi-grid" id="tradeKpiGrid" style="display:none;"></div>
+  /* =====================
+     RENDER
+     ===================== */
+  function renderRows() {
+    const list = document.getElementById('rowsList');
+    list.innerHTML = '';
 
-      <div class="table-wrap">
-        <table id="ordersTable">
-          <colgroup>
-  <col style="width:5%"><col style="width:7%"><col style="width:10%"><col style="width:8%">
-  <col style="width:6%"><col style="width:6%"><col style="width:6%">
-  <col style="width:9%"><col style="width:5%"><col style="width:7%"><col style="width:11%">
-  <col style="width:8%"><col style="width:12%">
-</colgroup>
-          <thead><tr>
-            <th class="num">Sr.</th><th>Customer</th><th>Style No.</th><th>Date</th>
-            <th class="num">Gross Wt</th><th class="num">Net Wt</th><th class="num">Carat</th>
-            <th class="num">Sub Total</th><th class="num">$</th><th>Memo No.</th><th>Sold To</th>
-            <th class="num">Sale Price</th><th>Status</th>
-          </tr></thead>
-          <tbody id="tbody">
-            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="13"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-          </tbody>
-        </table>
+    const start = (currentPage - 1) * perPage;
+    const pageItems = filtered.slice(start, start + perPage);
 
-        <table id="tradingTable" style="display:none;">
-          <colgroup>
-            <col style="width:6%"><col style="width:10%"><col style="width:16%">
-            <col style="width:12%"><col style="width:10%"><col style="width:10%">
-            <col style="width:10%"><col style="width:12%"><col style="width:10%">
-            <col style="width:10%"><col style="width:8%"><col style="width:10%">
-          </colgroup>
-          <thead><tr>
-            <th class="num">Sr.</th><th>Date</th><th>Item</th><th>Vendor</th>
-            <th class="num">Purchase $</th><th class="num">Sale $</th><th>Date Sold</th><th>Sold To</th>
-            <th class="num">Paid</th><th class="num">Balance</th><th>Status</th><th class="num">P/L</th>
-          </tr></thead>
-          <tbody id="tradeTbody">
-            <tr class="skeleton-row"><td colspan="12"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="12"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-            <tr class="skeleton-row"><td colspan="12"><div class="skeleton-cell" style="width:100%"></div></td></tr>
-          </tbody>
-        </table>
-      </div>
+    if (pageItems.length === 0) {
+      list.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--text-dim);">No orders found.</div>';
+    } else {
+      pageItems.forEach(item => {
+        const statusClass = item.status === 'paid' ? 'status-paid' : item.status === 'pending' ? 'status-pending' : 'status-memo';
+        const statusText = item.status === 'paid' ? 'Paid' : item.status === 'pending' ? 'Pending' : 'Memo';
+        const el = document.createElement('div');
+        el.className = 'row';
+        el.innerHTML = `
+          <div class="row-id">#${String(item.id).padStart(3,'0')}</div>
+          <div class="row-buyer">${escapeHtml(item.buyer)}</div>
+          <div class="row-status ${statusClass}">${statusText}</div>
+          <div class="row-amount">$${item.amount.toLocaleString('en-US',{minimumFractionDigits:2})}</div>
+        `;
+        list.appendChild(el);
+      });
+    }
 
-      <div class="card-list" id="cardList"></div>
-      <div class="card-list" id="tradeCardList" style="display:none;"></div>
-      <div class="pagination-bar" id="paginationBar"></div>
-      <div class="pagination-bar" id="tradePaginationBar" style="display:none;"></div>
-      <div class="swipe-hint">Swipe left/right to change pages</div>
-    </div>
-  </main>
-</div>
+    // Update pagination UI
+    document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+    document.getElementById('btnFirst').disabled = currentPage === 1;
+    document.getElementById('btnPrev').disabled = currentPage === 1;
+    document.getElementById('btnNext').disabled = currentPage === totalPages;
+    document.getElementById('btnLast').disabled = currentPage === totalPages;
 
-<!-- ============ ORDERS PANEL ============ -->
-<div id="overlay"></div>
-<div id="panel">
-  <div class="panel-head"><h2 id="panelTitle">New order</h2><button id="closePanel">&times;</button></div>
-  <div class="panel-body">
-    <div class="field"><label>Customer *</label><input id="f_customer" placeholder="e.g. HET"><div class="field-error" id="err_f_customer"></div></div>
-    <div class="field"><label>Style No. *</label><input id="f_style" placeholder="e.g. SLER-0079 I"><div class="field-error" id="err_f_style"></div></div>
-    <div class="field"><label>Date</label><input id="f_date" type="date"></div>
-    <div class="field-row">
-      <div class="field"><label>Gross Wt (g)</label><input id="f_grossWt" type="number" step="0.001" placeholder="0.000"><div class="field-error" id="err_f_grossWt"></div></div>
-      <div class="field"><label>Net Wt (g) *</label><input id="f_netWt" type="number" step="0.001" placeholder="0.000"><div class="field-error" id="err_f_netWt"></div></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Dia Qty</label><input id="f_diaQty" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_diaQty"></div></div>
-      <div class="field"><label>IN CT</label><input id="f_inCt" type="number" step="0.01" placeholder="0.00"><div class="field-error" id="err_f_inCt"></div></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Colour Stone</label><input id="f_colourStone" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_colourStone"></div></div>
-      <div class="field"><label>Multiplier</label><input id="f_multiplier" type="number" step="0.001" value="0.595"><div class="field-error" id="err_f_multiplier"></div></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Diamond Amount (₹)</label><input id="f_diamAmount" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_diamAmount"></div></div>
-      <div class="field"><label>L Charges (₹/g)</label><input id="f_lCharges" type="number" step="1" placeholder="900"><div class="field-error" id="err_f_lCharges"></div></div>
-    </div>
-    <div class="field" style="margin-top:-6px;margin-bottom:10px;">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;text-transform:none;letter-spacing:0;color:var(--text-dim);font-weight:400;">
-        <input type="checkbox" id="f_flatLabor" style="width:16px;height:16px;cursor:pointer;">
-        Flat labor — fixed amount (don't multiply by weight)
-      </label>
-    </div>
-    <div class="computed-preview">
-      <h4>Live Preview</h4>
-      <div class="computed-row"><span class="label">Pg Wt</span><span class="value" id="prev_pgWt">—</span></div>
-      <div class="computed-row"><span class="label">Gold Amount</span><span class="value" id="prev_goldAmt">—</span></div>
-      <div class="computed-row"><span class="label">Labor Amount</span><span class="value" id="prev_laborAmt">—</span></div>
-      <div class="computed-row"><span class="label">Sub Total</span><span class="value" id="prev_subTotal">—</span></div>
-      <div class="computed-row"><span class="label">USD ($)</span><span class="value" id="prev_usd">—</span></div>
-    </div>
-    <p class="computed-note">Formulas: Pg Wt = Net Wt × Multiplier | Gold Amt = Pg Wt × 16000 | Labor = Net Wt × L Charges | $ = Sub Total ÷ 94</p>
-    <div class="section-divider">Sale &amp; Payment</div>
-    <div class="field"><label>Memo No.</label><input id="f_memoNo" placeholder="e.g. MEMO-014"><div class="computed-note" id="memoSummary" style="display:none;"></div></div>
-    <div class="field"><label>Sold To (Buyer)</label><input id="f_soldTo" placeholder="e.g. Priya Shah"></div>
-    <div class="field-row">
-      <div class="field"><label id="lbl_salePrice">Sale Price ($)</label><input id="f_salePrice" type="number" step="1" placeholder="0"><div class="field-error" id="err_f_salePrice"></div></div>
-      <div class="field"><label>Date Sold</label><input id="f_dateSold" type="date"></div>
-    </div>
-    <div class="field">
-      <label>Installments</label>
-      <div id="installmentsList" class="installments-list"></div>
-      <div class="field-row installment-add-row">
-        <div class="field"><input id="f_instAmount" type="number" step="1" min="0" placeholder="Amount $"></div>
-        <div class="field"><input id="f_instDate" type="date"></div>
-      </div>
-      <button class="btn secondary small" id="addInstallmentBtn" type="button" style="width:100%">+ Add installment</button>
-      <div class="field-error" id="err_f_installment"></div>
-    </div>
-    <div class="computed-preview">
-      <h4>Payment Preview</h4>
-      <div class="computed-row"><span class="label">Amount Paid</span><span class="value" id="prev_amountPaid">—</span></div>
-      <div class="computed-row"><span class="label">Balance Due</span><span class="value" id="prev_balanceDue">—</span></div>
-      <div class="computed-row"><span class="label">Payment Status</span><span class="value" id="prev_paymentStatus">—</span></div>
-    </div>
-    <div id="saveMsg"></div>
-  </div>
-  <div class="panel-foot">
-    <button id="deleteBtn" style="display:none;"><span id="deleteText">Delete</span></button>
-    <button class="btn" id="saveBtn" style="flex:1;">Save</button>
-  </div>
-</div>
+    // Recalc totals from visible filtered set (or allData if you prefer global)
+    recalcTotals(filtered);
+  }
 
-<!-- ============ TRADING PANEL ============ -->
-<div id="tradeOverlay"></div>
-<div id="tradePanel">
-  <div class="panel-head"><h2 id="tradePanelTitle">New Trade</h2><button id="closeTradePanel">&times;</button></div>
-  <div class="panel-body">
-    <div class="field-row">
-      <div class="field"><label>Item *</label><input id="t_item" placeholder="e.g. Diamond Bracelet"><div class="field-error" id="err_t_item"></div></div>
-      <div class="field"><label>Vendor *</label><input id="t_vendor" placeholder="e.g. Rakesh Jewellers"><div class="field-error" id="err_t_vendor"></div></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Date</label><input id="t_date" type="date"></div>
-      <div class="field"><label>Purchase Price ($) *</label><input id="t_purchasePrice" type="number" step="1" placeholder="0"><div class="field-error" id="err_t_purchasePrice"></div></div>
-    </div>
-    <div class="section-divider">Sale &amp; Payment</div>
-    <div class="field-row">
-      <div class="field"><label>Sale Price ($)</label><input id="t_salePrice" type="number" step="1" placeholder="0"><div class="field-error" id="err_t_salePrice"></div></div>
-      <div class="field"><label>Date Sold</label><input id="t_dateSold" type="date"></div>
-    </div>
-    <div class="field"><label>Sold To</label><input id="t_soldTo" placeholder="e.g. Priya Shah"></div>
-    <div class="field">
-      <label>Installments</label>
-      <div id="tradeInstallmentsList" class="installments-list"></div>
-      <div class="field-row installment-add-row">
-        <div class="field"><input id="t_instAmount" type="number" step="1" min="0" placeholder="Amount $"></div>
-        <div class="field"><input id="t_instDate" type="date"></div>
-      </div>
-      <button class="btn secondary small" id="addTradeInstallmentBtn" type="button" style="width:100%">+ Add installment</button>
-      <div class="field-error" id="err_t_installment"></div>
-    </div>
-    <div class="computed-preview">
-      <h4>Trading Preview</h4>
-      <div class="computed-row"><span class="label">Profit / Loss</span><span class="value" id="t_prev_profit" style="color:var(--text-dim)">—</span></div>
-      <div class="computed-row"><span class="label">Amount Paid</span><span class="value" id="t_prev_amountPaid">—</span></div>
-      <div class="computed-row"><span class="label">Balance Due</span><span class="value" id="t_prev_balanceDue">—</span></div>
-      <div class="computed-row"><span class="label">Payment Status</span><span class="value" id="t_prev_paymentStatus">—</span></div>
-    </div>
-    <div class="field"><label>Notes</label><input id="t_notes" placeholder="Any notes…"></div>
-    <div id="tradeSaveMsg"></div>
-  </div>
-  <div class="panel-foot">
-    <button id="deleteTradeBtn" style="display:none;"><span id="deleteTradeText">Delete</span></button>
-    <button class="btn" id="saveTradeBtn" style="flex:1;">Save</button>
-  </div>
-</div>
+  function recalcTotals(data) {
+    // Demo calculations — replace with your real formulas
+    const revenue = data.reduce((s, r) => s + (r.status === 'paid' ? r.amount : r.amount*0.6), 0);
+    const cost = data.length * 2200; // dummy cost per item
+    const gross = revenue - cost;
+    const collected = data.filter(r => r.status === 'paid').reduce((s, r) => s + r.amount, 0);
+    const outstanding = data.filter(r => r.status !== 'paid').reduce((s, r) => s + r.amount, 0);
 
-<!-- ============ RECEIVE PAYMENT ============ -->
-<div id="paymentSearchOverlay"></div>
-<div id="paymentSearchModal">
-  <div class="panel-head"><h2>Receive Payment</h2><button id="closePaymentSearch">&times;</button></div>
-  <div class="pay-search-body">
-    <input id="paySearchInput" placeholder="Search memo no., buyer, style, or customer…" autocomplete="off">
-    <div id="payResults" class="pay-results"></div>
-  </div>
-</div>
+    document.getElementById('plValue').textContent = (gross >= 0 ? '+' : '') + '$' + Math.abs(gross).toLocaleString('en-US',{minimumFractionDigits:2});
+    document.getElementById('plValue').className = 'summary-value ' + (gross >= 0 ? 'green' : 'red');
 
-<div id="screenFx"></div>
-<div id="toast"></div>
-<div id="undoToast">
-  <span class="undo-msg">Order deleted — <span class="undo-count" id="undoCount">60</span>s left</span>
-  <button id="undoBtn">Undo</button>
-</div>
-<div id="toastContainer" class="toast-container"></div>
+    document.getElementById('grossPl').textContent = (gross >= 0 ? '+' : '') + '$' + Math.abs(gross).toLocaleString('en-US',{minimumFractionDigits:2});
+    document.getElementById('grossPl').className = 'stat-value ' + (gross >= 0 ? 'green' : 'red');
 
-<!-- Firebase SDKs (required before firebase.js runs) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    document.getElementById('collected').textContent = '$' + collected.toLocaleString('en-US',{minimumFractionDigits:2});
+    document.getElementById('outstanding').textContent = '$' + outstanding.toLocaleString('en-US',{minimumFractionDigits:2});
+  }
 
-<!-- App scripts — load order matters -->
-<script src="js/utils.js"></script>
-<script src="js/api.js"></script>
-<script src="js/firebase.js"></script>
-<script src="js/app.js"></script>
-<script src="js/dashboard.js"></script>
-<script src="js/filters.js"></script>
-<script src="js/panel.js"></script>
-<script src="js/table.js"></script>
-<script src="js/payments.js"></script>
-<script src="js/trading.js"></script>
+  function gotoPage(p) {
+    if (p < 1 || p > totalPages) return;
+    currentPage = p;
+    renderRows();
+    document.getElementById('rowsWrap').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function filterRows() {
+    const q = document.getElementById('search').value.toLowerCase();
+    filtered = allData.filter(r =>
+      r.buyer.toLowerCase().includes(q) ||
+      r.status.includes(q) ||
+      String(r.id).includes(q)
+    );
+    currentPage = 1;
+    renderRows();
+  }
+
+  function switchTab(name, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    // In a real app you'd swap views here
+  }
+
+  function escapeHtml(t) {
+    const d = document.createElement('div');
+    d.textContent = t;
+    return d.innerHTML;
+  }
+
+  /* Swipe support */
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(dx) > 60) {
+      if (dx < 0) gotoPage(currentPage + 1);
+      else gotoPage(currentPage - 1);
+    }
+  });
+
+  /* Init */
+  renderRows();
+</script>
 
 </body>
 </html>
