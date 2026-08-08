@@ -180,13 +180,6 @@ function equalizeColumnWidths() {
   });
 }
 
-  if (!visibleIndices.length) return;
-  var visibleTotal = visibleIndices.reduce(function(sum, i) { return sum + baseWidths[i]; }, 0);
-  visibleIndices.forEach(function(i) {
-    cols[i].style.width = ((baseWidths[i] / visibleTotal) * 100) + '%';
-  });
-}
-
 /* ============ VIEW TOGGLE ============ */
 $('ordersViewBtn').addEventListener('click', function() { switchView('orders'); });
 $('tradingViewBtn').addEventListener('click', function() { switchView('trading'); });
