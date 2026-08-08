@@ -233,7 +233,7 @@ function renderTradeCards(rows) {
     var profitStr = sale ? (profit >= 0 ? '+' : '-') + '$' + fmtMoney(Math.abs(profit)) : '—';
     var profitColor = sale ? (profit >= 0 ? 'var(--success)' : 'var(--error)') : 'var(--text-dim)';
 
-    return '<div class="order-card" data-id="' + r._id + '">' +
+    return '<div class="order-card trade-card" data-id="' + r._id + '">' +
       '<div class="card-header" onclick="window.toggleCard(this)">' +
       '<div class="card-header-left">' +
       '<span class="card-title">' + highlightText(r[K.item] || '', q) + '</span>' +
@@ -245,15 +245,14 @@ function renderTradeCards(rows) {
       '<span class="card-chevron">▼</span>' +
       '</div>' +
       '</div>' +
-      '<div class="card-summary">' +
-      '<div class="card-sum-row"><span>Sale</span><span>' + (sale ? '$' + fmtMoney(sale) : '—') + '</span></div>' +
-      '<div class="card-sum-row"><span>Status</span><span class="status-badge ' + statusClass + '">' + status + '</span></div>' +
-      '</div>' +
       '<div class="card-body">' +
+      '<div class="card-row"><span class="card-label">Purchase</span><span class="card-value">$' + fmtMoney(purchase) + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Sale</span><span class="card-value">' + (sale ? '$' + fmtMoney(sale) : '—') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Sold To</span><span class="card-value">' + (r[K.soldTo] || '—') + '</span></div>' +
       '<div class="card-row"><span class="card-label">Date Sold</span><span class="card-value">' + fmtDate(r[K.dateSold]) + '</span></div>' +
       '<div class="card-row"><span class="card-label">Paid</span><span class="card-value">$' + fmtMoney(r[K.amountPaid]) + '</span></div>' +
       '<div class="card-row"><span class="card-label">Balance</span><span class="card-value">$' + fmtMoney(r[K.balanceDue]) + '</span></div>' +
+      '<div class="card-row"><span class="card-label">Status</span><span class="card-value"><span class="status-badge ' + statusClass + '">' + status + '</span></span></div>' +
       '</div>' +
       '</div>';
   }).join('');
