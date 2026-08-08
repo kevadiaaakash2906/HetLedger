@@ -504,7 +504,10 @@ main { padding: 20px 24px; }
 }
 
 /* Hide Diamond CT column */
-#ordersTable col:nth-child(8),
+#ordersTable col:nth-child(8) {
+  visibility: collapse;
+  width: 0;
+}
 #ordersTable thead th:nth-child(8),
 #ordersTable tbody td:nth-child(8) {
   display: none;
