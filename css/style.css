@@ -1497,3 +1497,44 @@ mark.search-highlight {
     font-size: 11px !important;
   }
 }
+
+/* ============================================
+   ROLE-BASED COLUMN HIDING (Orders)
+   ============================================ */
+
+/* Seller: hide Net Wt (6th) and Sub Total (8th) */
+#ordersTable.seller-view th:nth-child(6),
+#ordersTable.seller-view td:nth-child(6),
+#ordersTable.seller-view th:nth-child(8),
+#ordersTable.seller-view td:nth-child(8) {
+  display: none !important;
+}
+
+/* Staff: hide Net Wt (6th) and Carat/IN CT (7th) */
+#ordersTable.staff-view th:nth-child(6),
+#ordersTable.staff-view td:nth-child(6),
+#ordersTable.staff-view th:nth-child(7),
+#ordersTable.staff-view td:nth-child(7) {
+  display: none !important;
+}
+
+/* Mobile cards: role-based hiding */
+.order-card.seller-view .card-sum-row:nth-child(1),  /* Net Wt */
+.order-card.seller-view .card-sum-row:nth-child(2)   /* Sub Total */ {
+  display: none;
+}
+.order-card.seller-view .card-summary {
+  grid-template-columns: 1fr;
+}
+
+.order-card.staff-view .card-sum-row:nth-child(1) {  /* Net Wt */
+  display: none;
+}
+.order-card.staff-view .card-summary {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Staff: hide IN CT row in card body */
+.order-card.staff-view .card-row:nth-child(3) {
+  display: none;
+}
