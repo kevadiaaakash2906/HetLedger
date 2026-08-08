@@ -13,13 +13,39 @@ var firebaseConfig = {
   measurementId: "G-HQN3J4LGXE"
 };
 
-window.firebase.initializeApp(firebaseConfig);
+// Initialize Firebase (safe if already initialized)
+try {
+  window.firebase.initializeApp(firebaseConfig);
+} catch (e) {
+  if (e.message && e.message.indexOf('already exists') > -1) {
+    console.log('Firebase already initialized');
+  } else {
+    console.error('Firebase init error:', e);
+  }
+}
+
 var db = window.firebase.firestore();
 
 var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbx9yEy0j0EHMegp_tzHX5-Q1xSuLHsp6Em98fLIg8wp9hbzIVbkTHeWhkWzZHgLE9RAYw/exec';
 
+/* Wait for Firebase Auth to be ready (session restored from disk) */
+var authReadyPromise = new Promise(function(resolve) {
+  var unsub = window.firebase.auth().onAuthStateChanged(function(user) {
+    unsub();
+    resolve(user);
+  });
+});
+
+async function ensureAuth() {
+  var user = window.firebase.auth().currentUser;
+  if (user) return user;
+  // If not immediately available, wait for the initial state to resolve
+  return await authReadyPromise;
+}
+
 /* ============ ORDERS ============ */
 async function fetchOrders() {
+  await ensureAuth();
   var snap = await db.collection('orders').get();
   var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
   rows.sort(function(a, b) {
@@ -29,6 +55,7 @@ async function fetchOrders() {
 }
 
 async function addOrder(data) {
+  await ensureAuth();
   var ref = db.collection('orders').doc();
   await ref.set({
     ...data,
@@ -40,6 +67,7 @@ async function addOrder(data) {
 }
 
 async function updateOrder(id, data) {
+  await ensureAuth();
   await db.collection('orders').doc(id).set({
     ...data,
     updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
@@ -48,12 +76,14 @@ async function updateOrder(id, data) {
 }
 
 async function deleteOrder(id, srNo) {
+  await ensureAuth();
   await db.collection('orders').doc(id).delete();
   syncToSheet({ 'Sr. No.': srNo, _action: 'delete', _collection: 'orders' });
 }
 
 /* ============ TRADING ============ */
 async function fetchTrading() {
+  await ensureAuth();
   var snap = await db.collection('trading').get();
   var rows = snap.docs.map(function(d) { return { _id: d.id, ...d.data() }; });
   rows.sort(function(a, b) {
@@ -63,6 +93,7 @@ async function fetchTrading() {
 }
 
 async function addTrading(data) {
+  await ensureAuth();
   var ref = db.collection('trading').doc();
   await ref.set({
     ...data,
@@ -74,6 +105,7 @@ async function addTrading(data) {
 }
 
 async function updateTrading(id, data) {
+  await ensureAuth();
   await db.collection('trading').doc(id).set({
     ...data,
     updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
@@ -82,6 +114,7 @@ async function updateTrading(id, data) {
 }
 
 async function deleteTrading(id, srNo) {
+  await ensureAuth();
   await db.collection('trading').doc(id).delete();
   syncToSheet({ 'Sr. No.': srNo, _action: 'delete', _collection: 'trading' });
 }
