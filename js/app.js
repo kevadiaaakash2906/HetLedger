@@ -185,7 +185,7 @@ function switchView(view) {
   $('tradePaginationBar').style.display = view === 'trading' ? 'flex' : 'none';
   $('newOrderBtn').style.display = (view === 'orders' && ROLE !== 'customer') ? 'inline-flex' : 'none';
   $('newTradeBtn').style.display = (view === 'trading' && ROLE !== 'customer') ? 'inline-flex' : 'none';
-  $('headerStats').style.display = view === 'orders' ? 'flex' : 'none';
+  $('headerStats').style.display = 'flex';
 
   renderAll();
 }
