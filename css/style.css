@@ -503,11 +503,6 @@ main { padding: 20px 24px; }
   border-bottom: none;
 }
 
-/* Hide Diamond CT column */
-#ordersTable col:nth-child(8) {
-  visibility: collapse;
-}
-
 .num {
   text-align: right;
   font-family: var(--font-mono);
