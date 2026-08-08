@@ -13,7 +13,7 @@ function renderTable() {
     var msg = window.currentSearchQuery 
       ? 'No orders match "' + escapeHtml(window.currentSearchQuery) + '"' 
       : 'No orders found';
-    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;padding:40px;color:var(--text-dim)">' + msg + '</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:40px;color:var(--text-dim)">' + msg + '</td></tr>';
     return;
   }
 
@@ -85,9 +85,10 @@ function renderCards(rows) {
       '<div class="card-header" onclick="window.toggleCard(this)">' +
       '<div class="card-header-left">' +
       '<span class="card-title">' + highlightText(r[DK.style] || '', q) + '</span>' +
-      '<span class="card-meta">' + (r[DK.customer] || '') + ' · ' + fmtDate(r[DK.date]) + ' · Sr. ' + r[DK.sr] + '</span>' +
+      '<span class="card-meta">' + (r[DK.customer] || '') + ' · ' + fmtDate(r[DK.date]) + '</span>' +
       '</div>' +
       '<div class="card-header-right">' +
+      '<span class="card-sr-badge">#' + r[DK.sr] + '</span>' +
       '<span class="status-badge ' + statusClass + '">' + status + '</span>' +
       '<span class="card-chevron">▼</span>' +
       '</div>' +
@@ -216,6 +217,7 @@ function renderTradeCards(rows) {
       '<span class="card-meta">' + (r[K.vendor] || '') + ' · ' + fmtDate(r[K.date]) + '</span>' +
       '</div>' +
       '<div class="card-header-right">' +
+      '<span class="card-sr-badge">#' + r[K.sr] + '</span>' +
       '<span class="card-value" style="color:' + profitColor + '">' + profitStr + '</span>' +
       '<span class="card-chevron">▼</span>' +
       '</div>' +
