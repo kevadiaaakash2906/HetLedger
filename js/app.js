@@ -170,16 +170,15 @@ function equalizeColumnWidths() {
   var cols = table.querySelectorAll('colgroup col');
   if (!cols.length) return;
 
-  var baseWidths = [5, 7, 10, 8, 6, 6, 6, 6, 9, 6, 7, 9, 7, 8];
-  var visibleIndices = [];
+  // 13 columns: Sr, Customer, Style, Date, Gross, Net, Carat, SubTotal, $, Memo, SoldTo, SalePrice, Status
+  var baseWidths = [5, 7, 10, 8, 6, 6, 6, 10, 6, 7, 10, 8, 11];
+  var total = baseWidths.reduce(function(s, w) { return s + w; }, 0);
 
   cols.forEach(function(col, i) {
-    if (getComputedStyle(col).visibility === 'collapse') {
-      col.style.width = '0%';
-    } else {
-      visibleIndices.push(i);
-    }
+    var w = baseWidths[i] || 0;
+    col.style.width = ((w / total) * 100) + '%';
   });
+}
 
   if (!visibleIndices.length) return;
   var visibleTotal = visibleIndices.reduce(function(sum, i) { return sum + baseWidths[i]; }, 0);
