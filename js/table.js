@@ -36,7 +36,13 @@ function renderTable() {
       '<td class="num">' + (r[DK.netWt] || '') + '</td>' +
       '<td class="num">' + (r[DK.inCt] || '') + '</td>' +
       '<td class="num">' + (r[DK.colourStone] || '') + '</td>' +
-      '<td class="num">' + (r[DK.subTotal] ? '₹' + Math.round(parseFloat(r[DK.subTotal]) || 0).toLocaleString('en-IN') : '') + '</td>' +
+      '<td class="num">' + (function() {
+      var gold = parseFloat(r[DK.goldAmt]) || 0;
+      var labor = parseFloat(r[DK.laborAmt]) || 0;
+      var diam = parseFloat(r[DK.diamAmount]) || 0;
+      var sub = gold + labor + diam;
+      return sub ? '₹' + Math.round(sub).toLocaleString('en-IN') : '';
+    })() + '</td>' +
       '<td class="num">' + (r[DK.usd] ? '$' + parseFloat(r[DK.usd]).toFixed(2) : '') + '</td>' +
       '<td>' + highlightText(r[DK.memoNo] || '', q) + '</td>' +
       '<td>' + highlightText(r[DK.soldTo] || '', q) + '</td>' +
@@ -89,7 +95,13 @@ function renderCards(rows) {
       '</div>' +
       '<div class="card-summary">' +
       '<div class="card-sum-row"><span>Net Wt</span><span>' + (r[DK.netWt] || '—') + 'g</span></div>' +
-      '<div class="card-sum-row"><span>Sub Total</span><span>' + subTotal + '</span></div>' +
+      '<div class="card-sum-row"><span>Sub Total</span><span>' + (function() {
+      var gold = parseFloat(r[DK.goldAmt]) || 0;
+      var labor = parseFloat(r[DK.laborAmt]) || 0;
+      var diam = parseFloat(r[DK.diamAmount]) || 0;
+      var sub = gold + labor + diam;
+      return sub ? '₹' + Math.round(sub).toLocaleString('en-IN') : '—';
+    })() + '</span></div>' +
       '<div class="card-sum-row"><span>USD</span><span>' + usd + '</span></div>' +
       '</div>' +
       '<div class="card-body">' +
