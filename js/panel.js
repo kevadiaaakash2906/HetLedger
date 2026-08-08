@@ -250,10 +250,41 @@ $('saveBtn').addEventListener('click', async function() {
 });
 
 /* ============ DELETE ============ */
-$('deleteBtn').addEventListener('click', async function() {
-  if (!editingId || ROLE !== 'staff') return;
-  if (!confirm('Delete this order permanently?')) return;
+var deleteTimer = null;
+var deleteProgress = 0;
 
+function startDeleteTimer() {
+  if (!editingId || ROLE !== 'staff') return;
+  var btn = $('deleteBtn');
+  btn.classList.add('deleting');
+  deleteProgress = 0;
+
+  deleteTimer = setInterval(function() {
+    deleteProgress += 50;
+    var pct = (deleteProgress / 3000) * 100;
+    btn.style.setProperty('--delete-progress', pct + '%');
+
+    if (deleteProgress >= 3000) {
+      clearInterval(deleteTimer);
+      deleteTimer = null;
+      btn.classList.remove('deleting');
+      doDeleteOrder();
+    }
+  }, 50);
+}
+
+function cancelDeleteTimer() {
+  if (deleteTimer) {
+    clearInterval(deleteTimer);
+    deleteTimer = null;
+  }
+  var btn = $('deleteBtn');
+  btn.classList.remove('deleting');
+  btn.style.setProperty('--delete-progress', '0%');
+}
+
+async function doDeleteOrder() {
+  if (!editingId) return;
   var order = ORDERS.find(function(r) { return r._id === editingId; });
   var srNo = order ? order[DK.sr] : '';
 
@@ -268,3 +299,9 @@ $('deleteBtn').addEventListener('click', async function() {
     showToast('Failed to delete order', 'error');
   }
 });
+
+$('deleteBtn').addEventListener('mousedown', startDeleteTimer);
+$('deleteBtn').addEventListener('touchstart', startDeleteTimer);
+$('deleteBtn').addEventListener('mouseup', cancelDeleteTimer);
+$('deleteBtn').addEventListener('mouseleave', cancelDeleteTimer);
+$('deleteBtn').addEventListener('touchend', cancelDeleteTimer);
