@@ -25,9 +25,8 @@
 <!-- ============ APP ============ -->
 <div id="app">
   <header class="topbar">
-    <div class="titles">
+    <div class="topbar-left">
       <div class="mark">VINÉRE<span class="dot">·</span>Ledger</div>
-      <div class="sub">Orders Delivered</div>
       <div class="view-toggle">
         <button class="btn secondary small active" id="ordersViewBtn">Orders</button>
         <button class="btn secondary small" id="tradingViewBtn">Trading</button>
@@ -38,27 +37,27 @@
       <div class="hstat" id="hstat_2_wrap"><span class="hstat-label" id="hstat_2_label">Remaining Stock</span><span class="hstat-value" id="hstat_2">—</span></div>
       <div class="hstat" id="hstat_3_wrap"><span class="hstat-label" id="hstat_3_label">Stock Cost</span><span class="hstat-value" id="hstat_3">—</span></div>
     </div>
-    <div class="controls">
+    <div class="topbar-right">
       <div class="search-wrap">
-        <input id="search" placeholder="Search customer, style, memo, buyer, or date…" autocomplete="off">
+        <input id="search" placeholder="Search…" autocomplete="off">
         <button id="searchClear" class="search-clear" title="Clear search">&times;</button>
         <span id="resultCount" class="result-count"></span>
       </div>
-      <button class="btn secondary" id="refreshBtn">Refresh</button>
-      <button class="btn secondary" id="receivePaymentBtn">Receive Payment</button>
-      <button class="btn" id="newOrderBtn">+ New order</button>
-      <button class="btn" id="newTradeBtn" style="display:none;">+ New trade</button>
+      <button class="btn secondary small" id="refreshBtn" title="Refresh">↻</button>
+      <button class="btn secondary small" id="receivePaymentBtn">Payment</button>
+      <button class="btn small" id="newOrderBtn">+ Order</button>
+      <button class="btn small" id="newTradeBtn" style="display:none;">+ Trade</button>
     </div>
   </header>
 
   <main>
     <div id="ordersView">
-      <div class="filter-bar">
-        <div class="filter-group"><label>Customer</label><select id="filterCustomer"><option value="">All customers</option></select></div>
-        <div class="filter-group"><label>From</label><input type="date" id="filterDateFrom"></div>
-        <div class="filter-group"><label>To</label><input type="date" id="filterDateTo"></div>
-        <div class="filter-group"><label>Sale Status</label><select id="filterSaleStatus"><option value="">All items</option><option value="Not Sold">Not sold</option><option value="Unpaid">Unpaid</option><option value="Partial">Partial</option><option value="Paid">Paid</option></select></div>
-        <button class="btn secondary small" id="clearFiltersBtn">Clear filters</button>
+      <div class="filter-bar compact">
+        <select id="filterCustomer"><option value="">All customers</option></select>
+        <input type="date" id="filterDateFrom" placeholder="From">
+        <input type="date" id="filterDateTo" placeholder="To">
+        <select id="filterSaleStatus"><option value="">All status</option><option value="Not Sold">Not sold</option><option value="Unpaid">Unpaid</option><option value="Partial">Partial</option><option value="Paid">Paid</option></select>
+        <button class="btn secondary small" id="clearFiltersBtn">Clear</button>
         <span class="rate-note" id="rateNote"></span>
       </div>
 
