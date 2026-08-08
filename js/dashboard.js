@@ -16,9 +16,18 @@ function renderKPIs() {
   var stockCount = notSold.length;
   var stockCost = notSold.reduce(function(s, r) { return s + (parseFloat(r[DK.usd]) || 0); }, 0);
 
-  $('hstat_pl').textContent = (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-  $('hstat_stockCount').textContent = stockCount;
-  $('hstat_stockCost').textContent = '$' + stockCost.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  // Header stats — same 3-slot layout for coherence
+  $('hstat_1_label').textContent = 'Profit / Loss';
+  $('hstat_1').textContent = (profit >= 0 ? '+' : '-') + '$' + Math.abs(profit).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  $('hstat_2_label').textContent = 'Remaining Stock';
+  $('hstat_2').textContent = stockCount;
+  $('hstat_3_label').textContent = 'Stock Cost';
+  $('hstat_3').textContent = '$' + stockCost.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+
+  // Reset colors from trading view
+  $('hstat_1').style.color = 'var(--accent)';
+  $('hstat_2').style.color = 'var(--accent)';
+  $('hstat_3').style.color = 'var(--accent)';
 
   $('kpiGrid').innerHTML =
     '<div class="kpi-card"><div class="kpi-label">Total Revenue</div>' +
@@ -50,6 +59,17 @@ function renderTradeKPIs() {
   var netPL = sold.reduce(function(s, r) { return s + ((parseFloat(r[K.salePrice]) || 0) - (parseFloat(r[K.purchasePrice]) || 0)); }, 0);
   var collected = TRADING.reduce(function(s, r) { return s + (parseFloat(r[K.amountPaid]) || 0); }, 0);
   var outstanding = TRADING.reduce(function(s, r) { return s + (parseFloat(r[K.balanceDue]) || 0); }, 0);
+
+  // Header stats — same 3-slot layout for coherence
+  $('hstat_1_label').textContent = 'Net P/L';
+  $('hstat_1').textContent = (netPL >= 0 ? '+' : '-') + '$' + Math.abs(netPL).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  $('hstat_1').style.color = netPL >= 0 ? 'var(--success)' : 'var(--error)';
+  $('hstat_2_label').textContent = 'Total Trades';
+  $('hstat_2').textContent = TRADING.length;
+  $('hstat_2').style.color = 'var(--accent)';
+  $('hstat_3_label').textContent = 'Outstanding';
+  $('hstat_3').textContent = '$' + outstanding.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  $('hstat_3').style.color = 'var(--warning)';
 
   $('tradeKpiGrid').innerHTML =
     '<div class="kpi-card"><div class="kpi-label">Total Trades</div>' +
