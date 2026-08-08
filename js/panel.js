@@ -103,6 +103,7 @@ function updatePreview() {
   var goldAmt = pgWt * 16000;
   var flatLabor = $('f_flatLabor').checked;
   var laborAmt = flatLabor ? lCharges : (netWt * lCharges);
+  var subTotal = goldAmt + diamAmount + laborAmt;
   var usd = subTotal / 94;
 
   $('prev_pgWt').textContent = pgWt ? pgWt.toFixed(3) + ' g' : '—';
@@ -194,6 +195,7 @@ $('saveBtn').addEventListener('click', async function() {
   var goldAmt = pgWt * 16000;
   var flatLabor = $('f_flatLabor').checked;
   var laborAmt = flatLabor ? lCharge : (net * lCharge);
+  var subTotal = goldAmt + diam + laborAmt;
   var usd = subTotal / 94;
 
   var status = 'Not Sold';
