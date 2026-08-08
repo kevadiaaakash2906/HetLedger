@@ -459,6 +459,7 @@ main { padding: 20px 24px; }
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+  table-layout: fixed;
 }
 
 #ordersTable thead th,
@@ -485,12 +486,19 @@ main { padding: 20px 24px; }
   color: var(--text);
 }
 
+#ordersTable thead th.num,
+#tradingTable thead th.num {
+  text-align: right;
+}
+
 #ordersTable tbody td,
 #tradingTable tbody td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #ordersTable tbody tr:hover,
