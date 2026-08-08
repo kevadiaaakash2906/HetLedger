@@ -193,24 +193,92 @@ $('ordersViewBtn').addEventListener('click', function() { switchView('orders'); 
 $('tradingViewBtn').addEventListener('click', function() { switchView('trading'); });
 
 function switchView(view) {
+  if (view === currentView) return;
+
+  var isOrders = view === 'orders';
+  var oldView = currentView;
   currentView = view;
   currentPage = 1;
-  $('ordersViewBtn').classList.toggle('active', view === 'orders');
-  $('tradingViewBtn').classList.toggle('active', view === 'trading');
 
-  $('ordersTable').style.display = view === 'orders' ? 'table' : 'none';
-  $('tradingTable').style.display = view === 'trading' ? 'table' : 'none';
-  $('cardList').classList.toggle('active', view === 'orders');
-  $('tradeCardList').classList.toggle('active', view === 'trading');
-  $('kpiGrid').style.display = view === 'orders' ? 'grid' : 'none';
-  $('tradeKpiGrid').style.display = view === 'trading' ? 'grid' : 'none';
-  $('paginationBar').style.display = view === 'orders' ? 'flex' : 'none';
-  $('tradePaginationBar').style.display = view === 'trading' ? 'flex' : 'none';
-  $('newOrderBtn').style.display = (view === 'orders' && ROLE !== 'customer') ? 'inline-flex' : 'none';
-  $('newTradeBtn').style.display = (view === 'trading' && ROLE !== 'customer') ? 'inline-flex' : 'none';
-  $('headerStats').style.display = 'flex';
+  // Toggle button states
+  $('ordersViewBtn').classList.toggle('active', isOrders);
+  $('tradingViewBtn').classList.toggle('active', !isOrders);
 
-  renderAll();
+  // Animate out old view
+  var oldTable = isOrders ? $('tradingTable') : $('ordersTable');
+  var oldKpi = isOrders ? $('tradeKpiGrid') : $('kpiGrid');
+  var oldPag = isOrders ? $('tradePaginationBar') : $('paginationBar');
+  var oldCards = isOrders ? $('tradeCardList') : $('cardList');
+
+  if (oldTable) oldTable.classList.add('switching-out');
+  if (oldKpi) oldKpi.classList.add('switching-out');
+  if (oldPag) oldPag.classList.add('switching-out');
+  if (oldCards) oldCards.classList.add('switching-out');
+
+  // After fade out, switch and animate in
+  setTimeout(function() {
+    // Hide old view completely
+    if (oldTable) {
+      oldTable.style.display = 'none';
+      oldTable.classList.remove('switching-out');
+    }
+    if (oldKpi) oldKpi.style.display = 'none';
+    if (oldPag) oldPag.style.display = 'none';
+    if (oldCards) {
+      oldCards.classList.remove('active');
+      oldCards.classList.remove('switching-out');
+    }
+
+    // Show new view
+    $('ordersTable').style.display = isOrders ? 'table' : 'none';
+    $('tradingTable').style.display = isOrders ? 'none' : 'table';
+    $('kpiGrid').style.display = isOrders ? 'grid' : 'none';
+    $('tradeKpiGrid').style.display = isOrders ? 'none' : 'grid';
+    $('paginationBar').style.display = isOrders ? 'flex' : 'none';
+    $('tradePaginationBar').style.display = isOrders ? 'none' : 'flex';
+    $('cardList').classList.toggle('active', isOrders);
+    $('tradeCardList').classList.toggle('active', !isOrders);
+    $('newOrderBtn').style.display = (isOrders && ROLE !== 'customer') ? 'inline-flex' : 'none';
+    $('newTradeBtn').style.display = (!isOrders && ROLE !== 'customer') ? 'inline-flex' : 'none';
+    $('headerStats').style.display = 'flex';
+
+    // Animate in new view
+    var newTable = isOrders ? $('ordersTable') : $('tradingTable');
+    var newKpi = isOrders ? $('kpiGrid') : $('tradeKpiGrid');
+    var newPag = isOrders ? $('paginationBar') : $('tradePaginationBar');
+    var newCards = isOrders ? $('cardList') : $('tradeCardList');
+
+    if (newTable) {
+      newTable.classList.add('switching-in');
+      requestAnimationFrame(function() {
+        newTable.classList.remove('switching-in');
+        newTable.classList.add('active');
+      });
+    }
+    if (newKpi) {
+      newKpi.classList.add('switching-in');
+      requestAnimationFrame(function() {
+        newKpi.classList.remove('switching-in');
+        newKpi.classList.add('active');
+      });
+    }
+    if (newPag) {
+      newPag.classList.add('switching-in');
+      requestAnimationFrame(function() {
+        newPag.classList.remove('switching-in');
+        newPag.classList.add('active');
+      });
+    }
+    if (newCards) {
+      newCards.classList.add('switching-in');
+      requestAnimationFrame(function() {
+        newCards.classList.remove('switching-in');
+        newCards.classList.add('active');
+      });
+    }
+
+    renderAll();
+  }, 300);
 }
 
 /* ============ SEARCH ============ */
