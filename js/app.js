@@ -67,7 +67,7 @@ $('passInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') 
 
 /* ============ DATA KEYS ============ */
 var DK = {
-  sr: 'Sr. No.', customer: 'CUSTOMER ', style: 'Style No.', date: 'Date',
+  sr: 'Sr. No.', customer: 'CUSTOMER', style: 'Style No.', date: 'Date',
   grossWt: 'Gross Wt', diaQty: 'Dia Qty', inCt: 'IN CT', colourStone: 'COLOUR STONE',
   netWt: 'Net Wt', multiplier: 'Multiplier', pgWt: 'Pg Wt', goldAmt: 'Gold Amount',
   diamAmount: 'Diam Amount', lCharges: 'L CHARGES', laborAmt: 'Labor Amount',
@@ -75,6 +75,20 @@ var DK = {
   dateSold: 'Date Sold', amountPaid: 'Amount Paid', balanceDue: 'Balance Due',
   paymentStatus: 'Payment Status', paymentLog: 'Payment Log', memoNo: 'Memo No.'
 };
+
+// Robust field getter — tries multiple key variants
+function getField(row, key) {
+  if (row[key] !== undefined) return row[key];
+  // Try with trailing space (old data compatibility)
+  if (row[key + ' '] !== undefined) return row[key + ' '];
+  // Try lowercase
+  var lower = key.toLowerCase();
+  if (row[lower] !== undefined) return row[lower];
+  // Try title case
+  var title = key.charAt(0).toUpperCase() + key.slice(1).toLowerCase();
+  if (row[title] !== undefined) return row[title];
+  return undefined;
+}
 
 var SHEET_KEYS = {
   sr: 'Sr. No.', date: 'Date', item: 'Item', vendor: 'Vendor',
@@ -103,10 +117,19 @@ async function initApp() {
 }
 
 /* ============ FETCH ORDERS ============ */
+function normalizeRow(row) {
+  var normalized = {};
+  for (var key in row) {
+    var cleanKey = key.trim();
+    normalized[cleanKey] = row[key];
+  }
+  return normalized;
+}
+
 async function doFetchOrders() {
   try {
     var result = await window.fetchOrders();
-    ORDERS = result.rows;
+    ORDERS = result.rows.map(normalizeRow);
     console.log('Loaded', ORDERS.length, 'orders');
   } catch (err) {
     console.error('Fetch orders failed', err);
@@ -118,7 +141,7 @@ async function doFetchOrders() {
 async function doFetchTrading() {
   try {
     var result = await window.fetchTrading();
-    TRADING = result.rows;
+    TRADING = result.rows.map(normalizeRow);
   } catch (err) {
     console.error('Fetch trading failed', err);
   }
