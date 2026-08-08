@@ -18,14 +18,8 @@ async function sha256(str) {
 }
 
 /* ---------- Auto-login on load ---------- */
-(async function checkStoredAuth() {
-  var savedRole = localStorage.getItem('vinere_role');
-  if (!savedRole || !PASSWORDS[savedRole]) return;
-
-  // We have a stored role — attempt silent Firebase re-auth if available
-  ROLE = savedRole;
-
-  // Hide login, show app
+window.showApp = function(role) {
+  ROLE = role;
   var loginEl = document.getElementById('login');
   var appEl = document.getElementById('app');
   if (loginEl) loginEl.style.display = 'none';
@@ -33,29 +27,34 @@ async function sha256(str) {
     appEl.style.display = 'block';
     document.body.style.background = 'var(--bg)';
   }
-
-  // Update user badge if present
   var userBadge = document.getElementById('userBadge');
   if (userBadge) userBadge.textContent = ROLE;
-
-  // Role-based button visibility
   var isStaff = ROLE === 'staff';
   var isSeller = ROLE === 'seller';
-  var isCustomer = ROLE === 'customer';
-
   var newOrderBtn = document.getElementById('newOrderBtn');
   var receivePaymentBtn = document.getElementById('receivePaymentBtn');
   var newTradeBtn = document.getElementById('newTradeBtn');
-
   if (newOrderBtn) newOrderBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
   if (receivePaymentBtn) receivePaymentBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
   if (newTradeBtn) newTradeBtn.style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
+};
 
-  // Init app data
-  if (typeof initApp === 'function') {
-    await initApp();
-  }
-})();
+window.checkStoredAuth = function() {
+  var savedRole = localStorage.getItem('vinere_role');
+  if (!savedRole || !PASSWORDS[savedRole]) return;
+
+  // Wait for Firebase Auth to restore session before initializing
+  window.firebase.auth().onAuthStateChanged(async function(user) {
+    if (user) {
+      ROLE = savedRole;
+      showApp(savedRole);
+      if (typeof initApp === 'function') {
+        await initApp();
+      }
+    }
+    // If no user, stay on login screen — user must log in again
+  });
+};
 
 window.login = async function() {
   var input = $('passInput').value.trim();
@@ -84,20 +83,7 @@ window.login = async function() {
         }
       }
 
-      $('login').style.display = 'none';
-      $('app').style.display = 'block';
-      document.body.style.background = 'var(--bg)';
-
-      var isStaff = ROLE === 'staff';
-      var isSeller = ROLE === 'seller';
-
-      $('newOrderBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
-      $('receivePaymentBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
-      $('newTradeBtn').style.display = (isStaff || isSeller) ? 'inline-flex' : 'none';
-
-      // Update user badge if present
-      var userBadge = document.getElementById('userBadge');
-      if (userBadge) userBadge.textContent = ROLE;
+      showApp(role);
 
       await initApp();
       showToast('Welcome, ' + role, 'success', 2000);
@@ -169,6 +155,30 @@ var sortDesc = false;
 var currentPage = 1;
 var PAGE_SIZE = 50;
 
+/* ============ DEMO DATA (fallback if Firebase is empty) ============ */
+function getDemoOrders() {
+  return [
+    { "Sr. No.": "1", "CUSTOMER": "A. Sharma", "Style No.": "SLER-001", "Date": "2026-01-15", "Gross Wt": "12.500", "Net Wt": "10.200", "Dia Qty": "24", "IN CT": "0.48", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "6.069", "Gold Amount": "97104", "Diam Amount": "15000", "L CHARGES": "900", "Labor Amount": "9180", "SUB TOTAL": "121284", "$": "1289.19", "Sold To": "", "Sale Price": "", "Date Sold": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "2", "CUSTOMER": "R. Goldsmith", "Style No.": "RNG-002", "Date": "2026-01-18", "Gross Wt": "8.300", "Net Wt": "7.100", "Dia Qty": "18", "IN CT": "0.36", "COLOUR STONE": "2", "Multiplier": "0.595", "Pg Wt": "4.225", "Gold Amount": "67596", "Diam Amount": "12000", "L CHARGES": "900", "Labor Amount": "6390", "SUB TOTAL": "85986", "$": "914.74", "Sold To": "Priya Shah", "Sale Price": "1200", "Date Sold": "2026-02-01", "Amount Paid": "500", "Balance Due": "700", "Payment Status": "Partial", "Payment Log": "[{\"amount\":500,\"date\":\"2026-02-01\"}]", "Memo No.": "" },
+    { "Sr. No.": "3", "CUSTOMER": "M. Jewellers", "Style No.": "BRCL-003", "Date": "2026-01-20", "Gross Wt": "25.000", "Net Wt": "22.500", "Dia Qty": "45", "IN CT": "0.90", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "13.388", "Gold Amount": "214200", "Diam Amount": "35000", "L CHARGES": "900", "Labor Amount": "20250", "SUB TOTAL": "269450", "$": "2866.49", "Sold To": "", "Sale Price": "", "Date Sold": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "4", "CUSTOMER": "S. Diamonds", "Style No.": "NKL-004", "Date": "2026-01-22", "Gross Wt": "15.600", "Net Wt": "13.400", "Dia Qty": "30", "IN CT": "0.60", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "7.973", "Gold Amount": "127568", "Diam Amount": "22000", "L CHARGES": "900", "Labor Amount": "12060", "SUB TOTAL": "161628", "$": "1719.45", "Sold To": "A. Sharma", "Sale Price": "2000", "Date Sold": "2026-02-10", "Amount Paid": "2000", "Balance Due": "0", "Payment Status": "Paid", "Payment Log": "[{\"amount\":2000,\"date\":\"2026-02-10\"}]", "Memo No.": "" },
+    { "Sr. No.": "5", "CUSTOMER": "K. Bullion", "Style No.": "ERNG-005", "Date": "2026-01-25", "Gross Wt": "6.200", "Net Wt": "5.400", "Dia Qty": "12", "IN CT": "0.24", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "3.213", "Gold Amount": "51408", "Diam Amount": "8000", "L CHARGES": "900", "Labor Amount": "4860", "SUB TOTAL": "64268", "$": "683.70", "Sold To": "", "Sale Price": "", "Date Sold": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "6", "CUSTOMER": "P. Traders", "Style No.": "PNDT-006", "Date": "2026-01-28", "Gross Wt": "18.000", "Net Wt": "15.500", "Dia Qty": "35", "IN CT": "0.70", "COLOUR STONE": "4", "Multiplier": "0.595", "Pg Wt": "9.223", "Gold Amount": "147560", "Diam Amount": "28000", "L CHARGES": "900", "Labor Amount": "13950", "SUB TOTAL": "189510", "$": "2016.06", "Sold To": "R. Goldsmith", "Sale Price": "2500", "Date Sold": "2026-02-15", "Amount Paid": "1000", "Balance Due": "1500", "Payment Status": "Partial", "Payment Log": "[{\"amount\":1000,\"date\":\"2026-02-15\"}]", "Memo No.": "" },
+    { "Sr. No.": "7", "CUSTOMER": "N. Exports", "Style No.": "BNG-007", "Date": "2026-02-01", "Gross Wt": "9.500", "Net Wt": "8.200", "Dia Qty": "20", "IN CT": "0.40", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "4.879", "Gold Amount": "78064", "Diam Amount": "14000", "L CHARGES": "900", "Labor Amount": "7380", "SUB TOTAL": "99444", "$": "1057.91", "Sold To": "", "Sale Price": "", "Date Sold": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "8", "CUSTOMER": "A. Sharma", "Style No.": "RNG-008", "Date": "2026-02-04", "Gross Wt": "11.000", "Net Wt": "9.500", "Dia Qty": "22", "IN CT": "0.44", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "5.653", "Gold Amount": "90440", "Diam Amount": "16000", "L CHARGES": "900", "Labor Amount": "8550", "SUB TOTAL": "114990", "$": "1223.30", "Sold To": "M. Jewellers", "Sale Price": "1500", "Date Sold": "2026-02-20", "Amount Paid": "0", "Balance Due": "1500", "Payment Status": "Unpaid", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "9", "CUSTOMER": "R. Goldsmith", "Style No.": "SLER-009", "Date": "2026-02-08", "Gross Wt": "14.200", "Net Wt": "12.000", "Dia Qty": "28", "IN CT": "0.56", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "7.140", "Gold Amount": "114240", "Diam Amount": "21000", "L CHARGES": "900", "Labor Amount": "10800", "SUB TOTAL": "146040", "$": "1553.62", "Sold To": "", "Sale Price": "", "Date Sold": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Memo No.": "" },
+    { "Sr. No.": "10", "CUSTOMER": "M. Jewellers", "Style No.": "BRCL-010", "Date": "2026-02-10", "Gross Wt": "28.000", "Net Wt": "25.000", "Dia Qty": "50", "IN CT": "1.00", "COLOUR STONE": "0", "Multiplier": "0.595", "Pg Wt": "14.875", "Gold Amount": "238000", "Diam Amount": "40000", "L CHARGES": "900", "Labor Amount": "22500", "SUB TOTAL": "300500", "$": "3196.81", "Sold To": "S. Diamonds", "Sale Price": "3500", "Date Sold": "2026-03-01", "Amount Paid": "3500", "Balance Due": "0", "Payment Status": "Paid", "Payment Log": "[{\"amount\":3500,\"date\":\"2026-03-01\"}]", "Memo No.": "" }
+  ].map(function(r) { r._id = 'demo_' + r["Sr. No."]; return r; });
+}
+
+function getDemoTrading() {
+  return [
+    { "Sr. No.": "1", "Date": "2026-01-10", "Item": "Gold Bar 50g", "Vendor": "Bullion Corp", "Purchase Price": "3200", "Sale Price": "3600", "Date Sold": "2026-01-20", "Sold To": "A. Sharma", "Amount Paid": "3600", "Balance Due": "0", "Payment Status": "Paid", "Payment Log": "[{\"amount\":3600,\"date\":\"2026-01-20\"}]", "Notes": "Quick flip" },
+    { "Sr. No.": "2", "Date": "2026-01-12", "Item": "Diamond Lot 2ct", "Vendor": "Rakesh Gems", "Purchase Price": "5000", "Sale Price": "5800", "Date Sold": "2026-02-01", "Sold To": "M. Jewellers", "Amount Paid": "3000", "Balance Due": "2800", "Payment Status": "Partial", "Payment Log": "[{\"amount\":3000,\"date\":\"2026-02-01\"}]", "Notes": "" },
+    { "Sr. No.": "3", "Date": "2026-01-15", "Item": "Silver Coins", "Vendor": "K. Bullion", "Purchase Price": "800", "Sale Price": "", "Date Sold": "", "Sold To": "", "Amount Paid": "0", "Balance Due": "0", "Payment Status": "Not Sold", "Payment Log": "[]", "Notes": "Holding" }
+  ].map(function(r) { r._id = 'demo_t' + r["Sr. No."]; return r; });
+}
+
 /* ============ INIT ============ */
 async function initApp() {
   await doFetchOrders();
@@ -192,9 +202,14 @@ async function doFetchOrders() {
     var result = await window.fetchOrders();
     ORDERS = result.rows.map(normalizeRow);
     console.log('Loaded', ORDERS.length, 'orders');
+    if (ORDERS.length === 0) {
+      console.log('Firestore orders empty, loading demo data');
+      ORDERS = getDemoOrders();
+    }
   } catch (err) {
     console.error('Fetch orders failed', err);
-    showToast('Failed to load orders', 'error');
+    showToast('Firebase orders failed — using demo data. Check console.', 'error');
+    ORDERS = getDemoOrders();
   }
 }
 
@@ -203,8 +218,14 @@ async function doFetchTrading() {
   try {
     var result = await window.fetchTrading();
     TRADING = result.rows.map(normalizeRow);
+    if (TRADING.length === 0) {
+      console.log('Firestore trading empty, loading demo data');
+      TRADING = getDemoTrading();
+    }
   } catch (err) {
     console.error('Fetch trading failed', err);
+    showToast('Firebase trading failed — using demo data.', 'error');
+    TRADING = getDemoTrading();
   }
 }
 
